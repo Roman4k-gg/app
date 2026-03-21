@@ -1,5 +1,6 @@
 package module.mobile.app
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.compose.ui.unit.sp
 import androidx.activity.ComponentActivity
@@ -33,9 +34,11 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import module.mobile.app.ui.theme.MobilemoduleTheme
 
@@ -60,7 +63,11 @@ fun AppNavigation() {
             onEvaluateClick = { currentScreen = "grid" }
         )
         "grid" -> GridScreen(
-            onBackClick = { currentScreen = "start" }
+            onBackClick = { currentScreen = "start" },
+            onNeuralClick = {currentScreen = "neural"}
+        )
+        "neural" -> NeuralScreen(
+            onBackClick = {currentScreen = "start"}
         )
     }
 }
@@ -74,17 +81,17 @@ fun StartScreen(onEvaluateClick: () -> Unit) {
         Button(
             onClick = onEvaluateClick,
             modifier = Modifier
-                .width(200.dp)
+                .width(150.dp)
                 .height(60.dp)
         ) {
-            Text("Оценка", fontSize = 20.sp)
+            Text("Оценка", fontSize = 20.sp, textAlign = TextAlign.Center)
         }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GridScreen(onBackClick: () -> Unit) {
+fun GridScreen(onBackClick: () -> Unit, onNeuralClick: () -> Unit){
     val itemsList = (0..24).toList()
     val gridState = remember { mutableStateListOf(*Array(25) { 0 }) }
 
@@ -134,5 +141,47 @@ fun GridScreen(onBackClick: () -> Unit) {
             }
         }
     }
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(top=590.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Button(
+            onClick = onNeuralClick,
+            modifier = Modifier
+                .width(150.dp)
+                .height(60.dp)
+        ) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("Оставить Оценку", fontSize = 20.sp, textAlign = TextAlign.Center)
+            }
+
+        }
+    }
+}
+
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun NeuralScreen(onBackClick: () -> Unit) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("В начало") },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "В начало"
+                        )
+                    }
+                }
+            )
+        }
+    ){}
 }
 
