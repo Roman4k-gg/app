@@ -19,6 +19,10 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        aaptOptions {
+            noCompress("tflite")
+            noCompress("lite")
+        }
     }
 
     buildTypes {
@@ -40,6 +44,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.tensorflow.lite)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
