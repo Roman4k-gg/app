@@ -5,6 +5,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -18,8 +19,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -30,7 +34,14 @@ import org.tensorflow.lite.Interpreter
 import java.io.FileInputStream
 import java.nio.MappedByteBuffer
 import java.nio.channels.FileChannel
-
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.foundation.gestures.rememberTransformableState
+import androidx.compose.foundation.gestures.transformable
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.DpSize
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -46,10 +57,13 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun AppNavigation() {
-    var currentScreen by remember { mutableStateOf("start") }
+    var currentScreen by remember { mutableStateOf("firstButt") }
     val gridState = remember { mutableStateListOf(*Array(25) { 0 }) }
 
     when (currentScreen) {
+        "firstButt" -> MapScreen(
+            onGradeClick = { currentScreen = "start"}
+        )
         "start" -> StartScreen(
             onEvaluateClick = { currentScreen = "grid" }
         )
@@ -62,6 +76,78 @@ fun AppNavigation() {
             gridState = gridState,
             onBackClick = { currentScreen = "start" }
         )
+    }
+}
+
+@Composable
+fun MapScreen(onGradeClick: () -> Unit) {
+    val imgWidthPx = 4820f
+    val imgHeightPx = 2961f
+
+    val density = LocalDensity.current
+    
+    val imgSizeDp = remember(density) {
+        DpSize(
+            width = (imgWidthPx / density.density).dp,
+            height = (imgHeightPx / density.density).dp
+        )
+    }
+
+    var scale by remember { mutableStateOf(1f) }
+    var offset by remember { mutableStateOf(Offset.Zero) }
+
+    var containerSize by remember { mutableStateOf(IntSize.Zero) }
+
+    val state = rememberTransformableState { zoomChange, panChange, _ ->
+        if (containerSize == IntSize.Zero) return@rememberTransformableState
+
+        val screenWidth = containerSize.width.toFloat()
+        val screenHeight = containerSize.height.toFloat()
+
+        val minScale = maxOf(screenWidth / imgWidthPx, screenHeight / imgHeightPx)
+
+        scale = (scale * zoomChange).coerceIn(minScale, 5f)
+        
+        val extraWidth = (imgWidthPx * scale - screenWidth).coerceAtLeast(0f) / 2f
+        val extraHeight = (imgHeightPx * scale - screenHeight).coerceAtLeast(0f) / 2f
+
+        val nextOffset = offset + panChange
+        offset = Offset(
+            x = nextOffset.x.coerceIn(-extraWidth, extraWidth),
+            y = nextOffset.y.coerceIn(-extraHeight, extraHeight)
+        )
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black)
+            .onGloballyPositioned { containerSize = it.size }
+            .clipToBounds()
+            .transformable(state = state)
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.paint_map),
+            contentDescription = null,
+            contentScale = ContentScale.None,
+            modifier = Modifier
+                .requiredSize(imgSizeDp)
+                .graphicsLayer {
+                    scaleX = scale
+                    scaleY = scale
+                    translationX = offset.x
+                    translationY = offset.y
+                }
+        )
+
+        Button(
+            onClick = onGradeClick,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 48.dp)
+        ) {
+            Text("Оценка интерфейса")
+        }
     }
 }
 
