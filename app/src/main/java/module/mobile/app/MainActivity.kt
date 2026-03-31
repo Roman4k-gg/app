@@ -2,9 +2,11 @@ package module.mobile.app
 
 import android.annotation.SuppressLint
 import android.os.Bundle
+import android.provider.ContactsContract
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -37,11 +39,17 @@ import java.nio.channels.FileChannel
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpSize
+import org.w3c.dom.Text
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -57,12 +65,16 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun AppNavigation() {
-    var currentScreen by remember { mutableStateOf("firstButt") }
+    var currentScreen by remember { mutableStateOf("veryFirstButt") }
     val gridState = remember { mutableStateListOf(*Array(25) { 0 }) }
 
     when (currentScreen) {
+        "veryFirstButt" -> MainScreen (
+            goToMap = { currentScreen = "firstButt"}
+        )
         "firstButt" -> MapScreen(
-            onGradeClick = { currentScreen = "start"}
+            onGradeClick = { currentScreen = "start"},
+            goToBackMain = { currentScreen = "veryFirstButt"}
         )
         "start" -> StartScreen(
             onEvaluateClick = { currentScreen = "grid" }
@@ -80,7 +92,89 @@ fun AppNavigation() {
 }
 
 @Composable
-fun MapScreen(onGradeClick: () -> Unit) {
+fun MainScreen(goToMap: () -> Unit) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        Image(
+            painter = painterResource(R.drawable.logo_hits),
+            contentDescription = null,
+            modifier = Modifier
+                .padding(16.dp, vertical = 32.dp) // Отступы от краев экрана
+                .size(60.dp)
+                .align(Alignment.TopStart), // Вот это прижмет его в угол
+            contentScale = ContentScale.Fit
+        )
+
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = "Добро пожаловать в HITsGis",
+                fontSize = 35.sp,
+                lineHeight = 50.sp,
+                modifier = Modifier.padding(horizontal = 15.dp),
+                fontFamily = FontFamily(Font(R.font.manropebold))
+            )
+
+            Divider(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 13.dp),
+                thickness = 2.dp,
+                color = Color.Black
+            )
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(0.7f)
+                    .fillMaxHeight(0.23f)
+                    .border(2.dp, Color(0xFF0072BC), RoundedCornerShape(10.dp))
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.paint_map),
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            }
+
+            Button(
+                onClick = goToMap,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFFF1F9FF),
+                    contentColor = Color.Black
+                ),
+                shape = RoundedCornerShape(10.dp),
+                border = BorderStroke(2.dp, Color(0xFF0072BC)),
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 6.dp),
+                modifier = Modifier
+                    .padding(40.dp)
+                    .fillMaxWidth(0.6f)
+                    .height(56.dp)
+            ) {
+                Text(
+                    text = "открыть карту",
+                    fontSize = 18.sp,
+                    fontFamily = FontFamily(Font(R.font.manropebold))
+                )
+            }
+        }
+    }
+}
+
+//@Preview(
+//    showBackground = true,
+//    showSystemUi = true
+//)
+//@Composable
+//fun MainScreenPreview() {
+//    MainScreen(
+//        goToMap = {} // пустая лямбда для превью
+//    )
+//}
+@Composable
+fun MapScreen(onGradeClick: () -> Unit, goToBackMain: () -> Unit) {
     val imgWidthPx = 4820f
     val imgHeightPx = 2961f
 
@@ -118,39 +212,87 @@ fun MapScreen(onGradeClick: () -> Unit) {
         )
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black)
-            .onGloballyPositioned { containerSize = it.size }
-            .clipToBounds()
-            .transformable(state = state)
-    ) {
-        Image(
-            painter = painterResource(id = R.drawable.paint_map),
-            contentDescription = null,
-            contentScale = ContentScale.None,
+    Column(modifier = Modifier.fillMaxSize()) {
+        Box(
             modifier = Modifier
-                .requiredSize(imgSizeDp)
-                .graphicsLayer {
-                    scaleX = scale
-                    scaleY = scale
-                    translationX = offset.x
-                    translationY = offset.y
-                }
-        )
-
-        Button(
-            onClick = onGradeClick,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 48.dp)
+                .fillMaxWidth()
+                .height(110.dp)
+                .background(Color.White),
+            contentAlignment = Alignment.Center
         ) {
-            Text("Оценка интерфейса")
+            Image(
+                painter = painterResource(R.drawable.logo_hits),
+                contentDescription = null,
+                modifier = Modifier
+                    .padding(8.dp, top = 25.dp)
+                    .size(60.dp)
+                    .align(Alignment.CenterStart)
+            )
+            Button(
+                onClick = goToBackMain,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFFF1F9FF),
+                    contentColor = Color.Black
+                ),
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(end = 13.dp, top = 45.dp)
+                    .size(45.dp),
+                shape = RoundedCornerShape(10.dp),
+                border = BorderStroke(2.dp, Color(0xFF0072BC)),
+            ) {
+            }
+        }
+        HorizontalDivider(
+            modifier = Modifier.fillMaxWidth(),
+            thickness = 2.dp,
+            color = Color(0xFF0072BC)
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black)
+                .onGloballyPositioned { containerSize = it.size }
+                .clipToBounds()
+                .transformable(state = state)
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.paint_map),
+                contentDescription = null,
+                contentScale = ContentScale.None,
+                modifier = Modifier
+                    .requiredSize(imgSizeDp)
+                    .graphicsLayer {
+                        scaleX = scale
+                        scaleY = scale
+                        translationX = offset.x
+                        translationY = offset.y
+                    }
+            )
+
+            Button(
+                onClick = onGradeClick,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 48.dp)
+            ) {
+                Text("Оценка интерфейса")
+            }
         }
     }
 }
 
+@Preview(
+    showBackground = true,
+    showSystemUi = true
+)
+@Composable
+fun MapScreenPreview() {
+    MapScreen(
+        onGradeClick = {},
+        goToBackMain = {}// пустая лямбда для превью
+    )
+}
 @Composable
 fun StartScreen(onEvaluateClick: () -> Unit) {
     Box(
