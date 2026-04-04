@@ -6,7 +6,7 @@ import kotlinx.coroutines.withContext
 
 class DigitRecognizer(private val context: Context) {
     private val inputSize = 50 * 50
-    private val hiddenSizes = listOf(128, 128)
+    private val hiddenSizes = listOf(512, 256, 128)   // ← новая архитектура
     private val outputSize = 10
     private val network = NeuralNetwork(inputSize, hiddenSizes, outputSize)
 
@@ -18,7 +18,6 @@ class DigitRecognizer(private val context: Context) {
             network.loadWeights(weights)
         } catch (e: Exception) {
             e.printStackTrace()
-            // Если файла нет, работаем со случайными весами (результат будет случайным)
         }
     }
 

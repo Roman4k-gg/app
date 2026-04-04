@@ -36,19 +36,15 @@ object Activations {
     fun relu(x: Double) = if (x > 0) x else 0.0
     fun reluDerivative(x: Double) = if (x > 0) 1.0 else 0.0
     fun softmax(m: Matrix): Matrix {
-        val expM = m.map { exp(it) }
-        val sum = expM.data.sumOf { row -> row.sum() }
-        return expM.map { it / sum }
-    }
-}
-
-object Loss {
-    fun crossEntropy(pred: Matrix, target: Matrix): Double {
-        var loss = 0.0
-        for (i in 0 until pred.rows)
-            for (j in 0 until pred.cols)
-                loss -= target.data[i][j] * kotlin.math.ln(pred.data[i][j] + 1e-8)
-        return loss / pred.rows
+        // Стабилизация softmax: вычитаем максимум в каждой строке
+        val maxPerRow = m.data.map { row -> row.maxOrNull() ?: 0.0 }
+        val expM = Matrix(m.rows, m.cols) { i, j ->
+            exp(m.data[i][j] - maxPerRow[i])
+        }
+        val sumPerRow = expM.data.map { row -> row.sum() }
+        return Matrix(m.rows, m.cols) { i, j ->
+            expM.data[i][j] / (sumPerRow[i] + 1e-8)
+        }
     }
 }
 
@@ -56,41 +52,33 @@ class DenseLayer(val inputSize: Int, val outputSize: Int) {
     val weights = Matrix(inputSize, outputSize)
     val biases = Matrix(1, outputSize)
     var input: Matrix? = null
-    var gradWeights: Matrix? = null
 
+    // Инициализация весов методом He (для случая, если загружаем из файла — перезапишем)
     init {
         val std = sqrt(2.0 / inputSize)
-        weights.randomize(-std, std)
-        biases.randomize(-std, std)
+        randomizeWeights(-std, std)
     }
 
-    private fun Matrix.randomize(min: Double, max: Double) {
-        for (i in 0 until rows)
-            for (j in 0 until cols)
-                data[i][j] = Random.nextDouble(min, max)
+    private fun randomizeWeights(min: Double, max: Double) {
+        for (i in 0 until weights.rows)
+            for (j in 0 until weights.cols)
+                weights.data[i][j] = Random.nextDouble(min, max)
+        for (j in 0 until biases.cols)
+            biases.data[0][j] = Random.nextDouble(min, max)
     }
 
     fun forward(input: Matrix): Matrix {
         this.input = input
         return input.matMul(weights).add(biases)
     }
-
-    fun backward(gradOutput: Matrix, learningRate: Double): Matrix {
-        val gradWeights = input!!.transpose().matMul(gradOutput)
-        val gradBiases = Matrix(1, outputSize) { _, j -> gradOutput.data.sumOf { it[j] } }
-        for (i in 0 until weights.rows)
-            for (j in 0 until weights.cols)
-                weights.data[i][j] -= learningRate * gradWeights.data[i][j]
-        for (j in 0 until biases.cols)
-            biases.data[0][j] -= learningRate * gradBiases.data[0][j]
-
-        return gradOutput.matMul(weights.transpose())
-    }
 }
 
-class NeuralNetwork(private val inputSize: Int, private val hiddenSizes: List<Int>, private val outputSize: Int) {
-    val layers = mutableListOf<DenseLayer>()
-    private var hiddenOutputs = mutableListOf<Matrix>()
+class NeuralNetwork(
+    private val inputSize: Int,
+    private val hiddenSizes: List<Int>,
+    private val outputSize: Int
+) {
+    private val layers = mutableListOf<DenseLayer>()
 
     init {
         var prev = inputSize
@@ -103,12 +91,10 @@ class NeuralNetwork(private val inputSize: Int, private val hiddenSizes: List<In
 
     fun forward(input: Matrix): Matrix {
         var current = input
-        hiddenOutputs.clear()
         for (i in layers.indices) {
             current = layers[i].forward(current)
             if (i < layers.size - 1) {
                 current = current.map(Activations::relu)
-                hiddenOutputs.add(current)
             } else {
                 current = Activations.softmax(current)
             }
@@ -118,19 +104,33 @@ class NeuralNetwork(private val inputSize: Int, private val hiddenSizes: List<In
 
     fun predict(input: Matrix): Int {
         val output = forward(input)
-        return output.data[0].indices.maxByOrNull { output.data[0][it] } ?: -1
+        var maxIndex = 0
+        var maxValue = output.data[0][0]
+        for (j in 1 until output.cols) {
+            if (output.data[0][j] > maxValue) {
+                maxValue = output.data[0][j]
+                maxIndex = j
+            }
+        }
+        return maxIndex
     }
 
     fun loadWeights(flatWeights: List<Double>) {
         var idx = 0
         for (layer in layers) {
-            val wSize = layer.weights.rows * layer.weights.cols
-            for (i in 0 until layer.weights.rows)
-                for (j in 0 until layer.weights.cols)
+            // Веса
+            for (i in 0 until layer.weights.rows) {
+                for (j in 0 until layer.weights.cols) {
                     layer.weights.data[i][j] = flatWeights[idx++]
-            val bSize = layer.biases.cols
-            for (j in 0 until layer.biases.cols)
+                }
+            }
+            // Смещения (bias)
+            for (j in 0 until layer.biases.cols) {
                 layer.biases.data[0][j] = flatWeights[idx++]
+            }
+        }
+        if (idx != flatWeights.size) {
+            println("Warning: loaded ${flatWeights.size} weights but used $idx")
         }
     }
 }

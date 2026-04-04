@@ -12,7 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.dp
 import kotlin.math.abs
 import kotlin.math.roundToInt
@@ -23,16 +23,15 @@ fun DrawingScreen(
     onBack: () -> Unit
 ) {
     val gridSize = 50
-    val cellSizeDp = 10.dp
-    val density = LocalDensity.current.density
-    val cellSizePx = cellSizeDp.value * density
-    val canvasSizePx = (gridSize * cellSizeDp.value * density).toInt()
-
     var pixels by remember { mutableStateOf(Array(gridSize) { BooleanArray(gridSize) { false } }) }
+    var canvasSize by remember { mutableStateOf(androidx.compose.ui.unit.IntSize.Zero) }
 
     fun setPixel(x: Int, y: Int, value: Boolean) {
-        if (x in 0 until gridSize && y in 0 until gridSize)
-            pixels[y][x] = value
+        if (x in 0 until gridSize && y in 0 until gridSize) {
+            if (pixels[y][x] != value) {
+                pixels = pixels.clone().apply { this[y][x] = value }
+            }
+        }
     }
 
     fun clear() {
@@ -58,71 +57,84 @@ fun DrawingScreen(
 
     var lastPos by remember { mutableStateOf<Offset?>(null) }
 
-    Box(
-        modifier = Modifier
-            .requiredSize(canvasSizePx.dp)
-            .background(Color.White)
-            .pointerInput(Unit) {
-                detectDragGestures(
-                    onDragStart = { offset ->
-                        val col = (offset.x / cellSizePx).roundToInt().coerceIn(0, gridSize - 1)
-                        val row = (offset.y / cellSizePx).roundToInt().coerceIn(0, gridSize - 1)
-                        setPixel(col, row, true)
-                        lastPos = Offset(col.toFloat(), row.toFloat())
-                    },
-                    onDrag = { change, _ ->
-                        val col = (change.position.x / cellSizePx).roundToInt().coerceIn(0, gridSize - 1)
-                        val row = (change.position.y / cellSizePx).roundToInt().coerceIn(0, gridSize - 1)
-                        lastPos?.let { last ->
-                            val lastCol = last.x.roundToInt()
-                            val lastRow = last.y.roundToInt()
-                            drawLine(lastCol, lastRow, col, row)
-                        }
-                        setPixel(col, row, true)
-                        lastPos = Offset(col.toFloat(), row.toFloat())
-                    },
-                    onDragEnd = {
-                        lastPos = null
-                    }
-                )
-            }
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            // Рисуем закрашенные клетки (чёрные)
-            for (row in 0 until gridSize) {
-                for (col in 0 until gridSize) {
-                    if (pixels[row][col]) {
-                        drawRect(
-                            color = Color.Black,
-                            topLeft = Offset(col * cellSizePx, row * cellSizePx),
-                            size = androidx.compose.ui.geometry.Size(cellSizePx, cellSizePx)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(1f)
+                .background(Color.White)
+                .onSizeChanged { canvasSize = it }
+                .pointerInput(Unit) {
+                    detectDragGestures(
+                        onDragStart = { offset ->
+                            if (canvasSize.width > 0) {
+                                val cellSize = canvasSize.width.toFloat() / gridSize
+                                val col = (offset.x / cellSize).roundToInt().coerceIn(0, gridSize - 1)
+                                val row = (offset.y / cellSize).roundToInt().coerceIn(0, gridSize - 1)
+                                setPixel(col, row, true)
+                                lastPos = Offset(col.toFloat(), row.toFloat())
+                            }
+                        },
+                        onDrag = { change, _ ->
+                            if (canvasSize.width > 0) {
+                                val cellSize = canvasSize.width.toFloat() / gridSize
+                                val col = (change.position.x / cellSize).roundToInt().coerceIn(0, gridSize - 1)
+                                val row = (change.position.y / cellSize).roundToInt().coerceIn(0, gridSize - 1)
+                                lastPos?.let { last ->
+                                    val lastCol = last.x.roundToInt()
+                                    val lastRow = last.y.roundToInt()
+                                    drawLine(lastCol, lastRow, col, row)
+                                }
+                                setPixel(col, row, true)
+                                lastPos = Offset(col.toFloat(), row.toFloat())
+                            }
+                        },
+                        onDragEnd = {
+                            lastPos = null
+                        }
+                    )
+                }
+        ) {
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                if (canvasSize.width > 0) {
+                    val cellSize = size.width / gridSize
+                    // Рисуем чёрные клетки
+                    for (row in 0 until gridSize) {
+                        for (col in 0 until gridSize) {
+                            if (pixels[row][col]) {
+                                drawRect(
+                                    color = Color.Black,
+                                    topLeft = Offset(col * cellSize, row * cellSize),
+                                    size = androidx.compose.ui.geometry.Size(cellSize, cellSize)
+                                )
+                            }
+                        }
+                    }
+                    // Рисуем сетку
+                    for (i in 0..gridSize) {
+                        drawLine(
+                            color = Color.LightGray,
+                            start = Offset(i * cellSize, 0f),
+                            end = Offset(i * cellSize, size.height),
+                            strokeWidth = 0.5f
+                        )
+                        drawLine(
+                            color = Color.LightGray,
+                            start = Offset(0f, i * cellSize),
+                            end = Offset(size.width, i * cellSize),
+                            strokeWidth = 0.5f
                         )
                     }
                 }
             }
-            // Рисуем сетку (серые линии)
-            for (i in 0..gridSize) {
-                drawLine(
-                    color = Color.LightGray,
-                    start = Offset(i * cellSizePx, 0f),
-                    end = Offset(i * cellSizePx, canvasSizePx.toFloat()),
-                    strokeWidth = 0.5f
-                )
-                drawLine(
-                    color = Color.LightGray,
-                    start = Offset(0f, i * cellSizePx),
-                    end = Offset(canvasSizePx.toFloat(), i * cellSizePx),
-                    strokeWidth = 0.5f
-                )
-            }
         }
-    }
 
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Bottom
-    ) {
+        Spacer(modifier = Modifier.height(24.dp))
+
         Row(
             modifier = Modifier.padding(16.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp)

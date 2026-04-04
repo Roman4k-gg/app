@@ -34,17 +34,23 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun AppNavigation() {
-    var currentScreen by remember { mutableStateOf("veryFirstButt") }
+    var currentScreen by remember { mutableStateOf("welcome") }
     var drawingResult by remember { mutableStateOf<FloatArray?>(null) }
 
     when (currentScreen) {
-        "veryFirstButt" -> MainScreen(goToDraw = { currentScreen = "draw" })
+        "welcome" -> WelcomeScreen(
+            onMapClick = { currentScreen = "map" },
+            onDrawClick = { currentScreen = "draw" }
+        )
+        "map" -> MapScreen(
+            goToBackMain = { currentScreen = "welcome" }
+        )
         "draw" -> DrawingScreen(
             onResult = { pixels ->
                 drawingResult = pixels
                 currentScreen = "result"
             },
-            onBack = { currentScreen = "veryFirstButt" }
+            onBack = { currentScreen = "welcome" }
         )
         "result" -> ResultScreen(
             imagePixels = drawingResult ?: FloatArray(2500) { 0f },
@@ -54,7 +60,7 @@ fun AppNavigation() {
 }
 
 @Composable
-fun MainScreen(goToDraw: () -> Unit) {
+fun WelcomeScreen(onMapClick: () -> Unit, onDrawClick: () -> Unit) {
     Box(modifier = Modifier.fillMaxSize()) {
         Image(
             painter = painterResource(R.drawable.logo_hits),
@@ -88,7 +94,7 @@ fun MainScreen(goToDraw: () -> Unit) {
             )
 
             Button(
-                onClick = goToDraw,
+                onClick = onMapClick,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = androidx.compose.ui.graphics.Color(0xFFF1F9FF),
                     contentColor = androidx.compose.ui.graphics.Color.Black
@@ -98,6 +104,26 @@ fun MainScreen(goToDraw: () -> Unit) {
                 elevation = ButtonDefaults.buttonElevation(defaultElevation = 6.dp),
                 modifier = Modifier
                     .padding(40.dp)
+                    .fillMaxWidth(0.6f)
+                    .height(56.dp)
+            ) {
+                Text(
+                    text = "Открыть карту",
+                    fontSize = 18.sp,
+                    fontFamily = FontFamily(Font(R.font.manropebold))
+                )
+            }
+
+            Button(
+                onClick = onDrawClick,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = androidx.compose.ui.graphics.Color(0xFFF1F9FF),
+                    contentColor = androidx.compose.ui.graphics.Color.Black
+                ),
+                shape = RoundedCornerShape(10.dp),
+                border = androidx.compose.foundation.BorderStroke(2.dp, androidx.compose.ui.graphics.Color(0xFF0072BC)),
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 6.dp),
+                modifier = Modifier
                     .fillMaxWidth(0.6f)
                     .height(56.dp)
             ) {
