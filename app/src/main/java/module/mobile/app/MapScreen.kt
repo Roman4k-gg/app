@@ -112,7 +112,6 @@ fun MapScreen(goToBackMain: () -> Unit) {
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        // Верхняя панель
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -151,7 +150,6 @@ fun MapScreen(goToBackMain: () -> Unit) {
         }
         HorizontalDivider(modifier = Modifier.fillMaxWidth(), thickness = 2.dp, color = Color(0xFF0072BC))
 
-        // Область карты
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -243,7 +241,6 @@ fun MapScreen(goToBackMain: () -> Unit) {
                 }
             }
 
-            // Кнопки зума
             Column(
                 modifier = Modifier
                     .align(Alignment.CenterStart)
@@ -278,7 +275,6 @@ fun MapScreen(goToBackMain: () -> Unit) {
                 }
             }
 
-            // Нижняя панель (кнопка вызова меню)
             Surface(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
@@ -311,12 +307,10 @@ fun MapScreen(goToBackMain: () -> Unit) {
                         ),
                         border = BorderStroke(2.dp, Color(0xFF0072BC))
                     ) {
-                        // Можно добавить иконку, но оставлено пустым как в оригинале
                     }
                 }
             }
 
-            // Выдвижная панель (BottomSheet)
             if (isBottomSheetVisible) {
                 Surface(
                     modifier = Modifier
@@ -341,7 +335,7 @@ fun MapScreen(goToBackMain: () -> Unit) {
                             modifier = Modifier.padding(bottom = 8.dp)
                         )
                         OutlinedButton(
-                            onClick = { /* можно реализовать построение маршрута отдельно */ },
+                            onClick = {},
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(55.dp),
@@ -357,7 +351,7 @@ fun MapScreen(goToBackMain: () -> Unit) {
                             }
                         }
                         OutlinedButton(
-                            onClick = { /* заведения */ },
+                            onClick = {},
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(55.dp),

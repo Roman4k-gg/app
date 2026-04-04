@@ -36,7 +36,6 @@ object Activations {
     fun relu(x: Double) = if (x > 0) x else 0.0
     fun reluDerivative(x: Double) = if (x > 0) 1.0 else 0.0
     fun softmax(m: Matrix): Matrix {
-        // Стабилизация softmax: вычитаем максимум в каждой строке
         val maxPerRow = m.data.map { row -> row.maxOrNull() ?: 0.0 }
         val expM = Matrix(m.rows, m.cols) { i, j ->
             exp(m.data[i][j] - maxPerRow[i])
@@ -53,7 +52,6 @@ class DenseLayer(val inputSize: Int, val outputSize: Int) {
     val biases = Matrix(1, outputSize)
     var input: Matrix? = null
 
-    // Инициализация весов методом He (для случая, если загружаем из файла — перезапишем)
     init {
         val std = sqrt(2.0 / inputSize)
         randomizeWeights(-std, std)
@@ -124,7 +122,6 @@ class NeuralNetwork(
                     layer.weights.data[i][j] = flatWeights[idx++]
                 }
             }
-            // Смещения (bias)
             for (j in 0 until layer.biases.cols) {
                 layer.biases.data[0][j] = flatWeights[idx++]
             }

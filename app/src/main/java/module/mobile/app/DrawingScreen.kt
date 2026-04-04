@@ -102,7 +102,6 @@ fun DrawingScreen(
             Canvas(modifier = Modifier.fillMaxSize()) {
                 if (canvasSize.width > 0) {
                     val cellSize = size.width / gridSize
-                    // Рисуем чёрные клетки
                     for (row in 0 until gridSize) {
                         for (col in 0 until gridSize) {
                             if (pixels[row][col]) {
@@ -114,10 +113,9 @@ fun DrawingScreen(
                             }
                         }
                     }
-                    // Рисуем сетку
                     for (i in 0..gridSize) {
                         drawLine(
-                            color = Color.LightGray,
+                            color = Color.White,
                             start = Offset(i * cellSize, 0f),
                             end = Offset(i * cellSize, size.height),
                             strokeWidth = 0.5f
