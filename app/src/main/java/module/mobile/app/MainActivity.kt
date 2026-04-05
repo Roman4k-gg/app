@@ -32,6 +32,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+
 @Composable
 fun AppNavigation() {
     var currentScreen by remember { mutableStateOf("welcome") }
