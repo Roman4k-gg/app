@@ -4,6 +4,8 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -28,9 +30,17 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.json.JSONObject
+
+private data class PoiMarker(
+    val row: Int,
+    val col: Int,
+    val typeId: String
+)
 
 @Composable
 fun MapScreen(goToBackMain: () -> Unit) {
@@ -56,11 +66,16 @@ fun MapScreen(goToBackMain: () -> Unit) {
     var containerSize by remember { mutableStateOf(IntSize.Zero) }
 
     var grid by remember { mutableStateOf<Array<IntArray>?>(null) }
+    var poiMarkers by remember { mutableStateOf<List<PoiMarker>>(emptyList()) }
+    var toolsMenuExpanded by remember { mutableStateOf(false) }
+    var showWalkableCells by remember { mutableStateOf(false) }
+    var showPoiMarkers by remember { mutableStateOf(true) }
+    var showTapCoordinates by remember { mutableStateOf(true) }
+    var lastTappedCell by remember { mutableStateOf<Pair<Int, Int>?>(null) }
+    var lastTappedValue by remember { mutableStateOf<Int?>(null) }
     var startPoint by remember { mutableStateOf<Pair<Int, Int>?>(null) }
     var endPoint by remember { mutableStateOf<Pair<Int, Int>?>(null) }
     var path by remember { mutableStateOf<List<Pair<Int, Int>>?>(null) }
-    var lastTappedCell by remember { mutableStateOf<Pair<Int, Int>?>(null) }
-    var lastTappedValue by remember { mutableStateOf<Int?>(null) }
     var isCalculating by remember { mutableStateOf(false) }
     var isBottomSheetVisible by remember { mutableStateOf(false) }
 
@@ -76,6 +91,26 @@ fun MapScreen(goToBackMain: () -> Unit) {
             } catch (e: Exception) {
                 e.printStackTrace()
                 grid = Array(matrixRows) { IntArray(matrixCols) { 1 } }
+            }
+
+            try {
+                val poiJson = context.assets.open("poi_points.json").bufferedReader().use { it.readText() }
+                val root = JSONObject(poiJson)
+                val poisArray = root.getJSONArray("pois")
+                val parsedMarkers = mutableListOf<PoiMarker>()
+                for (i in 0 until poisArray.length()) {
+                    val poi = poisArray.getJSONObject(i)
+                    val anchor = poi.getJSONObject("anchor")
+                    val row = anchor.getInt("row")
+                    val col = anchor.getInt("col")
+                    if (row in 0 until matrixRows && col in 0 until matrixCols) {
+                        parsedMarkers.add(PoiMarker(row, col, poi.optString("typeId", "unknown")))
+                    }
+                }
+                poiMarkers = parsedMarkers
+            } catch (e: Exception) {
+                e.printStackTrace()
+                poiMarkers = emptyList()
             }
         }
     }
@@ -129,6 +164,30 @@ fun MapScreen(goToBackMain: () -> Unit) {
                     .size(60.dp)
                     .align(Alignment.CenterStart)
             )
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(start = 86.dp, top = 45.dp)
+            ) {
+                Button(
+                    onClick = { toolsMenuExpanded = !toolsMenuExpanded },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFF1F9FF),
+                        contentColor = Color.Black
+                    ),
+                    shape = RoundedCornerShape(10.dp),
+                    border = BorderStroke(2.dp, Color(0xFF0072BC)),
+                    modifier = Modifier.size(45.dp),
+                    contentPadding = PaddingValues(0.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Settings,
+                        contentDescription = "Инструменты",
+                        tint = Color(0xFF0072BC),
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            }
             Button(
                 onClick = goToBackMain,
                 colors = ButtonDefaults.buttonColors(
@@ -159,6 +218,67 @@ fun MapScreen(goToBackMain: () -> Unit) {
                 .onGloballyPositioned { containerSize = it.size }
                 .clipToBounds()
         ) {
+            if (toolsMenuExpanded) {
+                Surface(
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(start = 86.dp, top = 8.dp)
+                        .width(280.dp)
+                        .zIndex(3f),
+                    color = Color.White,
+                    shape = RoundedCornerShape(12.dp),
+                    border = BorderStroke(2.dp, Color(0xFF0072BC)),
+                    shadowElevation = 10.dp
+                ) {
+                    Column(
+                        modifier = Modifier.padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = "Инструменты",
+                            fontFamily = FontFamily(Font(R.font.manropebold)),
+                            fontSize = 16.sp
+                        )
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text("Показывать клетки 1", fontSize = 14.sp)
+                            Switch(
+                                checked = showWalkableCells,
+                                onCheckedChange = { showWalkableCells = it }
+                            )
+                        }
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text("Показывать точки интереса", fontSize = 14.sp)
+                            Switch(
+                                checked = showPoiMarkers,
+                                onCheckedChange = { showPoiMarkers = it }
+                            )
+                        }
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text("Показывать координаты тапа", fontSize = 14.sp)
+                            Switch(
+                                checked = showTapCoordinates,
+                                onCheckedChange = { showTapCoordinates = it }
+                            )
+                        }
+                    }
+                }
+            }
+
             Box(
                 modifier = Modifier
                     .requiredSize(imgSizeDp)
@@ -177,7 +297,7 @@ fun MapScreen(goToBackMain: () -> Unit) {
                     modifier = Modifier.fillMaxSize()
                 )
 
-                androidx.compose.foundation.Canvas(
+                Canvas(
                     modifier = Modifier
                         .fillMaxSize()
                         .pointerInput(grid, isCalculating) {
@@ -188,8 +308,9 @@ fun MapScreen(goToBackMain: () -> Unit) {
 
                                 val clickedCol = (percentX * matrixCols).toInt().coerceIn(0, matrixCols - 1)
                                 val clickedRow = (percentY * matrixRows).toInt().coerceIn(0, matrixRows - 1)
+
                                 lastTappedCell = Pair(clickedRow, clickedCol)
-                                lastTappedValue = grid!![clickedRow][clickedCol]
+                                lastTappedValue = grid?.get(clickedRow)?.get(clickedCol)
 
                                 if (grid!![clickedRow][clickedCol] == 1) {
                                     if (startPoint == null || (startPoint != null && endPoint != null)) {
@@ -222,6 +343,38 @@ fun MapScreen(goToBackMain: () -> Unit) {
                         return Offset((col + 0.5f) * cellWidth, (row + 0.5f) * cellHeight)
                     }
 
+                    if (showWalkableCells) {
+                        val currentGrid = grid
+                        if (currentGrid != null) {
+                            for (r in 0 until matrixRows) {
+                                for (c in 0 until matrixCols) {
+                                    if (currentGrid[r][c] == 1) {
+                                        drawRect(
+                                            color = Color(0x4D00C853),
+                                            topLeft = Offset(c * cellWidth, r * cellHeight),
+                                            size = androidx.compose.ui.geometry.Size(cellWidth, cellHeight)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if (showPoiMarkers) {
+                        poiMarkers.forEach { marker ->
+                            val markerColor = when (marker.typeId) {
+                                "food" -> Color(0xFFFF8F00)
+                                "student_space" -> Color(0xFF1565C0)
+                                else -> Color(0xFF2E7D32)
+                            }
+                            drawCircle(
+                                color = markerColor,
+                                radius = cellWidth * 1.15f,
+                                center = getCenter(marker.row, marker.col)
+                            )
+                        }
+                    }
+
                     startPoint?.let { (r, c) ->
                         drawCircle(Color.Green, radius = cellWidth * 1.5f, center = getCenter(r, c))
                     }
@@ -245,22 +398,24 @@ fun MapScreen(goToBackMain: () -> Unit) {
                 }
             }
 
-            lastTappedCell?.let { (row, col) ->
-                Surface(
-                    modifier = Modifier
-                        .align(Alignment.TopStart)
-                        .padding(start = 12.dp, top = 12.dp),
-                    color = Color.White,
-                    shape = RoundedCornerShape(10.dp),
-                    border = BorderStroke(1.dp, Color(0xFF0072BC)),
-                    shadowElevation = 6.dp
-                ) {
-                    Text(
-                        text = "Координаты: row=$row, col=$col, value=${lastTappedValue ?: "?"}",
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                        color = Color.Black,
-                        fontSize = 14.sp
-                    )
+            if (showTapCoordinates) {
+                lastTappedCell?.let { (row, col) ->
+                    Surface(
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .padding(start = 12.dp, top = 12.dp),
+                        color = Color.White,
+                        shape = RoundedCornerShape(10.dp),
+                        border = BorderStroke(1.dp, Color(0xFF0072BC)),
+                        shadowElevation = 6.dp
+                    ) {
+                        Text(
+                            text = "Координаты: row=$row, col=$col, value=${lastTappedValue ?: "?"}",
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                            color = Color.Black,
+                            fontSize = 14.sp
+                        )
+                    }
                 }
             }
 
