@@ -1,0 +1,396 @@
+{
+  "schemaVersion": 2,
+  "matrix": {
+    "rows": 200,
+    "cols": 325,
+    "name": "matrix_325_200",
+    "walkableValue": 1,
+    "blockedValue": 0
+  },
+  "global": {
+    "distance": {
+      "defaultMetric": "astar_path",
+      "supportedMetrics": ["astar_path", "euclidean"]
+    },
+    "astar": {
+      "allowDiagonal": false,
+      "heuristic": "manhattan",
+      "stepCost": 1,
+      "dynamicObstacles": [
+        {
+          "id": "tape_001",
+          "isActive": false,
+          "cells": [
+            { "row": 120, "col": 150 },
+            { "row": 120, "col": 151 }
+          ],
+          "startAt": null,
+          "endAt": null,
+          "note": "temporary blocked zone"
+        }
+      ]
+    }
+  },
+  "pois": [
+    {
+      "id": "poi_landmark_001",
+      "name": "памятник менделееву и флоринскому",
+      "typeId": "landmark",
+      "level": 1,
+      "isActive": true,
+      "anchor": { "row": 89, "col": 175 },
+      "footprint": { "height": 2, "width": 2 },
+      "entryPoints": [{ "row": 89, "col": 175 }],
+      "common": { "tags": ["outside", "landmark"], "description": "" },
+      "algorithms": {
+        "astar": { "isPreferredTarget": true },
+        "clustering": { "enabled": false, "featureVector": null },
+        "genetic": { "enabled": false, "menu": [], "hasDisposableTableware": false, "serviceTimeMin": null, "openHours": null },
+        "antColony": { "enabled": true, "kind": "sightseeing", "visitDurationMin": 10, "comfortScore": null, "capacity": null, "currentLoad": null },
+        "ratingNeural": { "allowRating": false, "ratings": [] }
+      }
+    },
+    {
+      "id": "poi_landmark_002",
+      "name": "скульптура профессор белкин",
+      "typeId": "landmark",
+      "level": 1,
+      "isActive": true,
+      "anchor": { "row": 65, "col": 170 },
+      "footprint": { "height": 2, "width": 2 },
+      "entryPoints": [{ "row": 65, "col": 170 }],
+      "common": { "tags": ["outside", "landmark"], "description": "" },
+      "algorithms": {
+        "astar": { "isPreferredTarget": true },
+        "clustering": { "enabled": false, "featureVector": null },
+        "genetic": { "enabled": false, "menu": [], "hasDisposableTableware": false, "serviceTimeMin": null, "openHours": null },
+        "antColony": { "enabled": true, "kind": "sightseeing", "visitDurationMin": 10, "comfortScore": null, "capacity": null, "currentLoad": null },
+        "ratingNeural": { "allowRating": false, "ratings": [] }
+      }
+    },
+    {
+      "id": "poi_landmark_003",
+      "name": "лавочка примирения",
+      "typeId": "landmark",
+      "level": 1,
+      "isActive": true,
+      "anchor": { "row": 59, "col": 180 },
+      "footprint": { "height": 2, "width": 2 },
+      "entryPoints": [{ "row": 59, "col": 180 }],
+      "common": { "tags": ["outside", "landmark"], "description": "" },
+      "algorithms": {
+        "astar": { "isPreferredTarget": true },
+        "clustering": { "enabled": false, "featureVector": null },
+        "genetic": { "enabled": false, "menu": [], "hasDisposableTableware": false, "serviceTimeMin": null, "openHours": null },
+        "antColony": { "enabled": true, "kind": "sightseeing", "visitDurationMin": 10, "comfortScore": null, "capacity": null, "currentLoad": null },
+        "ratingNeural": { "allowRating": false, "ratings": [] }
+      }
+    },
+    {
+      "id": "poi_landmark_004",
+      "name": "памятник сотрудникам тгу погибшим в вов",
+      "typeId": "landmark",
+      "level": 1,
+      "isActive": true,
+      "anchor": { "row": 102, "col": 180 },
+      "footprint": { "height": 2, "width": 2 },
+      "entryPoints": [{ "row": 102, "col": 180 }],
+      "common": { "tags": ["outside", "landmark"], "description": "" },
+      "algorithms": {
+        "astar": { "isPreferredTarget": true },
+        "clustering": { "enabled": false, "featureVector": null },
+        "genetic": { "enabled": false, "menu": [], "hasDisposableTableware": false, "serviceTimeMin": null, "openHours": null },
+        "antColony": { "enabled": true, "kind": "sightseeing", "visitDurationMin": 10, "comfortScore": null, "capacity": null, "currentLoad": null },
+        "ratingNeural": { "allowRating": false, "ratings": [] }
+      }
+    },
+    {
+      "id": "poi_landmark_005",
+      "name": "университетское озеро",
+      "typeId": "landmark",
+      "level": 1,
+      "isActive": true,
+      "anchor": { "row": 120, "col": 73 },
+      "footprint": { "height": 2, "width": 2 },
+      "entryPoints": [{ "row": 120, "col": 73 }],
+      "common": { "tags": ["outside", "landmark"], "description": "" },
+      "algorithms": {
+        "astar": { "isPreferredTarget": true },
+        "clustering": { "enabled": false, "featureVector": null },
+        "genetic": { "enabled": false, "menu": [], "hasDisposableTableware": false, "serviceTimeMin": null, "openHours": null },
+        "antColony": { "enabled": true, "kind": "sightseeing", "visitDurationMin": 15, "comfortScore": null, "capacity": null, "currentLoad": null },
+        "ratingNeural": { "allowRating": false, "ratings": [] }
+      }
+    },
+    {
+      "id": "poi_food_001",
+      "name": "магазин 1",
+      "typeId": "food",
+      "level": 1,
+      "isActive": true,
+      "anchor": { "row": 16, "col": 42 },
+      "footprint": { "height": 2, "width": 2 },
+      "entryPoints": [{ "row": 16, "col": 42 }],
+      "common": { "tags": ["food", "shop"], "description": "" },
+      "algorithms": {
+        "astar": { "isPreferredTarget": true },
+        "clustering": { "enabled": true, "featureVector": null },
+        "genetic": { "enabled": true, "menu": [], "hasDisposableTableware": true, "serviceTimeMin": null, "openHours": null },
+        "antColony": { "enabled": false, "kind": null, "visitDurationMin": null, "comfortScore": null, "capacity": null, "currentLoad": null },
+        "ratingNeural": { "allowRating": true, "ratings": [] }
+      }
+    },
+    {
+      "id": "poi_food_002",
+      "name": "магазин 2",
+      "typeId": "food",
+      "level": 1,
+      "isActive": true,
+      "anchor": { "row": 78, "col": 267 },
+      "footprint": { "height": 2, "width": 2 },
+      "entryPoints": [{ "row": 78, "col": 267 }],
+      "common": { "tags": ["food", "shop"], "description": "" },
+      "algorithms": {
+        "astar": { "isPreferredTarget": true },
+        "clustering": { "enabled": true, "featureVector": null },
+        "genetic": { "enabled": true, "menu": [], "hasDisposableTableware": true, "serviceTimeMin": null, "openHours": null },
+        "antColony": { "enabled": false, "kind": null, "visitDurationMin": null, "comfortScore": null, "capacity": null, "currentLoad": null },
+        "ratingNeural": { "allowRating": true, "ratings": [] }
+      }
+    },
+    {
+      "id": "poi_food_003",
+      "name": "магазин 3",
+      "typeId": "food",
+      "level": 1,
+      "isActive": true,
+      "anchor": { "row": 18, "col": 266 },
+      "footprint": { "height": 2, "width": 2 },
+      "entryPoints": [{ "row": 18, "col": 266 }],
+      "common": { "tags": ["food", "shop"], "description": "" },
+      "algorithms": {
+        "astar": { "isPreferredTarget": true },
+        "clustering": { "enabled": true, "featureVector": null },
+        "genetic": { "enabled": true, "menu": [], "hasDisposableTableware": true, "serviceTimeMin": null, "openHours": null },
+        "antColony": { "enabled": false, "kind": null, "visitDurationMin": null, "comfortScore": null, "capacity": null, "currentLoad": null },
+        "ratingNeural": { "allowRating": true, "ratings": [] }
+      }
+    },
+    {
+      "id": "poi_food_004",
+      "name": "русские блины",
+      "typeId": "food",
+      "level": 1,
+      "isActive": true,
+      "anchor": { "row": 82, "col": 140 },
+      "footprint": { "height": 2, "width": 2 },
+      "entryPoints": [{ "row": 82, "col": 140 }],
+      "common": { "tags": ["food", "pancakes"], "description": "" },
+      "algorithms": {
+        "astar": { "isPreferredTarget": true },
+        "clustering": { "enabled": true, "featureVector": null },
+        "genetic": { "enabled": true, "menu": ["pancakes"], "hasDisposableTableware": false, "serviceTimeMin": null, "openHours": null },
+        "antColony": { "enabled": false, "kind": null, "visitDurationMin": null, "comfortScore": null, "capacity": null, "currentLoad": null },
+        "ratingNeural": { "allowRating": true, "ratings": [] }
+      }
+    },
+    {
+      "id": "poi_food_005",
+      "name": "кафе минутка",
+      "typeId": "food",
+      "level": 1,
+      "isActive": true,
+      "anchor": { "row": 81, "col": 144 },
+      "footprint": { "height": 2, "width": 2 },
+      "entryPoints": [{ "row": 81, "col": 144 }],
+      "common": { "tags": ["food", "cafe"], "description": "" },
+      "algorithms": {
+        "astar": { "isPreferredTarget": true },
+        "clustering": { "enabled": true, "featureVector": null },
+        "genetic": { "enabled": true, "menu": [], "hasDisposableTableware": false, "serviceTimeMin": null, "openHours": null },
+        "antColony": { "enabled": false, "kind": null, "visitDurationMin": null, "comfortScore": null, "capacity": null, "currentLoad": null },
+        "ratingNeural": { "allowRating": true, "ratings": [] }
+      }
+    },
+    {
+      "id": "poi_food_006",
+      "name": "столовка",
+      "typeId": "food",
+      "level": 1,
+      "isActive": true,
+      "anchor": { "row": 78, "col": 143 },
+      "footprint": { "height": 2, "width": 2 },
+      "entryPoints": [{ "row": 78, "col": 143 }],
+      "common": { "tags": ["food", "cafeteria"], "description": "" },
+      "algorithms": {
+        "astar": { "isPreferredTarget": true },
+        "clustering": { "enabled": true, "featureVector": null },
+        "genetic": { "enabled": true, "menu": [], "hasDisposableTableware": false, "serviceTimeMin": null, "openHours": null },
+        "antColony": { "enabled": false, "kind": null, "visitDurationMin": null, "comfortScore": null, "capacity": null, "currentLoad": null },
+        "ratingNeural": { "allowRating": true, "ratings": [] }
+      }
+    },
+    {
+      "id": "poi_food_007",
+      "name": "буфет во втором корпусе",
+      "typeId": "food",
+      "level": 1,
+      "isActive": true,
+      "anchor": { "row": 103, "col": 113 },
+      "footprint": { "height": 2, "width": 2 },
+      "entryPoints": [{ "row": 103, "col": 113 }],
+      "common": { "tags": ["food", "buffet"], "description": "" },
+      "algorithms": {
+        "astar": { "isPreferredTarget": true },
+        "clustering": { "enabled": true, "featureVector": null },
+        "genetic": { "enabled": true, "menu": [], "hasDisposableTableware": false, "serviceTimeMin": null, "openHours": null },
+        "antColony": { "enabled": false, "kind": null, "visitDurationMin": null, "comfortScore": null, "capacity": null, "currentLoad": null },
+        "ratingNeural": { "allowRating": true, "ratings": [] }
+      }
+    },
+    {
+      "id": "poi_food_008",
+      "name": "старбукс",
+      "typeId": "food",
+      "level": 1,
+      "isActive": true,
+      "anchor": { "row": 73, "col": 131 },
+      "footprint": { "height": 2, "width": 2 },
+      "entryPoints": [{ "row": 73, "col": 131 }],
+      "common": { "tags": ["food", "coffee"], "description": "" },
+      "algorithms": {
+        "astar": { "isPreferredTarget": true },
+        "clustering": { "enabled": true, "featureVector": null },
+        "genetic": { "enabled": true, "menu": ["coffee"], "hasDisposableTableware": false, "serviceTimeMin": null, "openHours": null },
+        "antColony": { "enabled": false, "kind": null, "visitDurationMin": null, "comfortScore": null, "capacity": null, "currentLoad": null },
+        "ratingNeural": { "allowRating": true, "ratings": [] }
+      }
+    },
+    {
+      "id": "poi_space_001",
+      "name": "коворк в библиотеке",
+      "typeId": "student_space",
+      "level": 1,
+      "isActive": true,
+      "anchor": { "row": 137, "col": 193 },
+      "footprint": { "height": 2, "width": 2 },
+      "entryPoints": [{ "row": 137, "col": 193 }],
+      "common": { "tags": ["student_space", "coworking"], "description": "" },
+      "algorithms": {
+        "astar": { "isPreferredTarget": false },
+        "clustering": { "enabled": false, "featureVector": null },
+        "genetic": { "enabled": false, "menu": [], "hasDisposableTableware": false, "serviceTimeMin": null, "openHours": null },
+        "antColony": { "enabled": true, "kind": "coworking", "visitDurationMin": 120, "comfortScore": null, "capacity": null, "currentLoad": null },
+        "ratingNeural": { "allowRating": false, "ratings": [] }
+      }
+    },
+    {
+      "id": "poi_space_002",
+      "name": "коворк во втором корпусе",
+      "typeId": "student_space",
+      "level": 1,
+      "isActive": true,
+      "anchor": { "row": 104, "col": 112 },
+      "footprint": { "height": 2, "width": 2 },
+      "entryPoints": [{ "row": 104, "col": 112 }],
+      "common": { "tags": ["student_space", "coworking"], "description": "" },
+      "algorithms": {
+        "astar": { "isPreferredTarget": false },
+        "clustering": { "enabled": false, "featureVector": null },
+        "genetic": { "enabled": false, "menu": [], "hasDisposableTableware": false, "serviceTimeMin": null, "openHours": null },
+        "antColony": { "enabled": true, "kind": "coworking", "visitDurationMin": 120, "comfortScore": null, "capacity": null, "currentLoad": null },
+        "ratingNeural": { "allowRating": false, "ratings": [] }
+      }
+    },
+    {
+      "id": "poi_space_003",
+      "name": "свободная аудитория в библиотеке 1",
+      "typeId": "student_space",
+      "level": 1,
+      "isActive": true,
+      "anchor": { "row": 135, "col": 177 },
+      "footprint": { "height": 2, "width": 2 },
+      "entryPoints": [{ "row": 135, "col": 177 }],
+      "common": { "tags": ["student_space", "free_room"], "description": "" },
+      "algorithms": {
+        "astar": { "isPreferredTarget": false },
+        "clustering": { "enabled": false, "featureVector": null },
+        "genetic": { "enabled": false, "menu": [], "hasDisposableTableware": false, "serviceTimeMin": null, "openHours": null },
+        "antColony": { "enabled": true, "kind": "free_room", "visitDurationMin": 90, "comfortScore": null, "capacity": null, "currentLoad": null },
+        "ratingNeural": { "allowRating": false, "ratings": [] }
+      }
+    },
+    {
+      "id": "poi_space_004",
+      "name": "свободная аудитория 2",
+      "typeId": "student_space",
+      "level": 1,
+      "isActive": true,
+      "anchor": { "row": 135, "col": 178 },
+      "footprint": { "height": 2, "width": 2 },
+      "entryPoints": [{ "row": 135, "col": 178 }],
+      "common": { "tags": ["student_space", "free_room"], "description": "" },
+      "algorithms": {
+        "astar": { "isPreferredTarget": false },
+        "clustering": { "enabled": false, "featureVector": null },
+        "genetic": { "enabled": false, "menu": [], "hasDisposableTableware": false, "serviceTimeMin": null, "openHours": null },
+        "antColony": { "enabled": true, "kind": "free_room", "visitDurationMin": 90, "comfortScore": null, "capacity": null, "currentLoad": null },
+        "ratingNeural": { "allowRating": false, "ratings": [] }
+      }
+    },
+    {
+      "id": "poi_space_005",
+      "name": "свободная аудитория 3",
+      "typeId": "student_space",
+      "level": 1,
+      "isActive": true,
+      "anchor": { "row": 135, "col": 179 },
+      "footprint": { "height": 2, "width": 2 },
+      "entryPoints": [{ "row": 135, "col": 179 }],
+      "common": { "tags": ["student_space", "free_room"], "description": "" },
+      "algorithms": {
+        "astar": { "isPreferredTarget": false },
+        "clustering": { "enabled": false, "featureVector": null },
+        "genetic": { "enabled": false, "menu": [], "hasDisposableTableware": false, "serviceTimeMin": null, "openHours": null },
+        "antColony": { "enabled": true, "kind": "free_room", "visitDurationMin": 90, "comfortScore": null, "capacity": null, "currentLoad": null },
+        "ratingNeural": { "allowRating": false, "ratings": [] }
+      }
+    },
+    {
+      "id": "poi_space_006",
+      "name": "свободная аудитория в втором корпусе",
+      "typeId": "student_space",
+      "level": 1,
+      "isActive": true,
+      "anchor": { "row": 115, "col": 106 },
+      "footprint": { "height": 2, "width": 2 },
+      "entryPoints": [{ "row": 115, "col": 106 }],
+      "common": { "tags": ["student_space", "free_room"], "description": "" },
+      "algorithms": {
+        "astar": { "isPreferredTarget": false },
+        "clustering": { "enabled": false, "featureVector": null },
+        "genetic": { "enabled": false, "menu": [], "hasDisposableTableware": false, "serviceTimeMin": null, "openHours": null },
+        "antColony": { "enabled": true, "kind": "free_room", "visitDurationMin": 90, "comfortScore": null, "capacity": null, "currentLoad": null },
+        "ratingNeural": { "allowRating": false, "ratings": [] }
+      }
+    },
+    {
+      "id": "poi_space_007",
+      "name": "свободная аудитория во втором корпусе 2",
+      "typeId": "student_space",
+      "level": 1,
+      "isActive": true,
+      "anchor": { "row": 92, "col": 105 },
+      "footprint": { "height": 2, "width": 2 },
+      "entryPoints": [{ "row": 92, "col": 105 }],
+      "common": { "tags": ["student_space", "free_room"], "description": "" },
+      "algorithms": {
+        "astar": { "isPreferredTarget": false },
+        "clustering": { "enabled": false, "featureVector": null },
+        "genetic": { "enabled": false, "menu": [], "hasDisposableTableware": false, "serviceTimeMin": null, "openHours": null },
+        "antColony": { "enabled": true, "kind": "free_room", "visitDurationMin": 90, "comfortScore": null, "capacity": null, "currentLoad": null },
+        "ratingNeural": { "allowRating": false, "ratings": [] }
+      }
+    }
+  ]
+}

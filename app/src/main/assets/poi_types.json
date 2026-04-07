@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "types": [
+    {
+      "id": "landmark",
+      "title": "Landmark",
+      "matrixCode": 2,
+      "colorHex": "#2E7D32",
+      "icon": "ic_landmark"
+    },
+    {
+      "id": "food",
+      "title": "Food",
+      "matrixCode": 3,
+      "colorHex": "#EF6C00",
+      "icon": "ic_food"
+    },
+    {
+      "id": "student_space",
+      "title": "Student Space",
+      "matrixCode": 4,
+      "colorHex": "#1565C0",
+      "icon": "ic_student_space"
+    }
+  ]
+}
+
