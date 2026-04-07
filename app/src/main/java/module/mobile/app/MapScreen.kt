@@ -59,6 +59,8 @@ fun MapScreen(goToBackMain: () -> Unit) {
     var startPoint by remember { mutableStateOf<Pair<Int, Int>?>(null) }
     var endPoint by remember { mutableStateOf<Pair<Int, Int>?>(null) }
     var path by remember { mutableStateOf<List<Pair<Int, Int>>?>(null) }
+    var lastTappedCell by remember { mutableStateOf<Pair<Int, Int>?>(null) }
+    var lastTappedValue by remember { mutableStateOf<Int?>(null) }
     var isCalculating by remember { mutableStateOf(false) }
     var isBottomSheetVisible by remember { mutableStateOf(false) }
 
@@ -186,6 +188,8 @@ fun MapScreen(goToBackMain: () -> Unit) {
 
                                 val clickedCol = (percentX * matrixCols).toInt().coerceIn(0, matrixCols - 1)
                                 val clickedRow = (percentY * matrixRows).toInt().coerceIn(0, matrixRows - 1)
+                                lastTappedCell = Pair(clickedRow, clickedCol)
+                                lastTappedValue = grid!![clickedRow][clickedCol]
 
                                 if (grid!![clickedRow][clickedCol] == 1) {
                                     if (startPoint == null || (startPoint != null && endPoint != null)) {
@@ -238,6 +242,25 @@ fun MapScreen(goToBackMain: () -> Unit) {
                             drawPath(pathLine, Color.Blue, style = Stroke(width = cellWidth * 0.8f))
                         }
                     }
+                }
+            }
+
+            lastTappedCell?.let { (row, col) ->
+                Surface(
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(start = 12.dp, top = 12.dp),
+                    color = Color.White,
+                    shape = RoundedCornerShape(10.dp),
+                    border = BorderStroke(1.dp, Color(0xFF0072BC)),
+                    shadowElevation = 6.dp
+                ) {
+                    Text(
+                        text = "Координаты: row=$row, col=$col, value=${lastTappedValue ?: "?"}",
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        color = Color.Black,
+                        fontSize = 14.sp
+                    )
                 }
             }
 

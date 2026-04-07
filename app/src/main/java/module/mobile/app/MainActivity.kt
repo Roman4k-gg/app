@@ -5,7 +5,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -18,6 +17,9 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import module.mobile.app.ui.theme.MobilemoduleTheme
 
 class MainActivity : ComponentActivity() {
@@ -35,28 +37,40 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun AppNavigation() {
-    var currentScreen by remember { mutableStateOf("welcome") }
+    val navController = rememberNavController()
     var drawingResult by remember { mutableStateOf<FloatArray?>(null) }
 
-    when (currentScreen) {
-        "welcome" -> WelcomeScreen(
-            onMapClick = { currentScreen = "map" },
-            onDrawClick = { currentScreen = "draw" }
-        )
-        "map" -> MapScreen(
-            goToBackMain = { currentScreen = "welcome" }
-        )
-        "draw" -> DrawingScreen(
-            onResult = { pixels ->
-                drawingResult = pixels
-                currentScreen = "result"
-            },
-            onBack = { currentScreen = "welcome" }
-        )
-        "result" -> ResultScreen(
-            imagePixels = drawingResult ?: FloatArray(2500) { 0f },
-            onBackToDraw = { currentScreen = "draw" }
-        )
+    NavHost(
+        navController = navController,
+        startDestination = "welcome"
+    ) {
+        composable("welcome") {
+            WelcomeScreen(
+                onMapClick = { navController.navigate("map") },
+                onDrawClick = { navController.navigate("draw") }
+            )
+        }
+
+        composable("map") {
+            MapScreen(goToBackMain = { navController.popBackStack() })
+        }
+
+        composable("draw") {
+            DrawingScreen(
+                onResult = { pixels ->
+                    drawingResult = pixels
+                    navController.navigate("result")
+                },
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable("result") {
+            ResultScreen(
+                imagePixels = drawingResult ?: FloatArray(2500) { 0f },
+                onBackToDraw = { navController.popBackStack() }
+            )
+        }
     }
 }
 

@@ -56,6 +56,7 @@ dependencies {
     implementation(libs.androidx.compose.foundation.layout)
     implementation(libs.androidx.ui)
     implementation(libs.androidx.compose.foundation)
+    implementation("androidx.navigation:navigation-compose:2.8.9")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
