@@ -20,6 +20,9 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import module.mobile.app.algorithms.DrawingScreen
+import module.mobile.app.algorithms.ResultScreen
+import module.mobile.app.map.ui.screen.MapScreen
 import module.mobile.app.ui.theme.MobilemoduleTheme
 
 class MainActivity : ComponentActivity() {

@@ -3,21 +3,15 @@
   "types": [
     {
       "id": "landmark",
-      "title": "Достопримечательность",
-      "colorHex": "#2E7D32",
-      "icon": "ic_landmark"
+      "title": "Достопримечательность"
     },
     {
       "id": "food",
-      "title": "Еда",
-      "colorHex": "#EF6C00",
-      "icon": "ic_food"
+      "title": "Еда"
     },
     {
       "id": "student_space",
-      "title": "Студенческое пространство",
-      "colorHex": "#1565C0",
-      "icon": "ic_student_space"
+      "title": "Студенческое пространство"
     }
   ]
 }

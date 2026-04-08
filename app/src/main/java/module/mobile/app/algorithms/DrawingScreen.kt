@@ -1,4 +1,4 @@
-package module.mobile.app
+package module.mobile.app.algorithms
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -10,9 +10,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import kotlin.math.abs
 import kotlin.math.roundToInt
@@ -24,7 +26,7 @@ fun DrawingScreen(
 ) {
     val gridSize = 50
     var pixels by remember { mutableStateOf(Array(gridSize) { BooleanArray(gridSize) { false } }) }
-    var canvasSize by remember { mutableStateOf(androidx.compose.ui.unit.IntSize.Zero) }
+    var canvasSize by remember { mutableStateOf(IntSize.Zero) }
 
     fun setPixel(x: Int, y: Int, value: Boolean) {
         if (x in 0 until gridSize && y in 0 until gridSize) {
@@ -108,7 +110,7 @@ fun DrawingScreen(
                                 drawRect(
                                     color = Color.Black,
                                     topLeft = Offset(col * cellSize, row * cellSize),
-                                    size = androidx.compose.ui.geometry.Size(cellSize, cellSize)
+                                    size = Size(cellSize, cellSize)
                                 )
                             }
                         }

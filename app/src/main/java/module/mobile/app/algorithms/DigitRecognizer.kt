@@ -1,4 +1,4 @@
-package module.mobile.app
+package module.mobile.app.algorithms
 
 import android.content.Context
 import kotlinx.coroutines.Dispatchers

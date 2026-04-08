@@ -1,4 +1,4 @@
-package module.mobile.app
+package module.mobile.app.algorithms
 
 import kotlin.math.exp
 import kotlin.math.sqrt

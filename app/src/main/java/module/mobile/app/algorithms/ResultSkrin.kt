@@ -1,10 +1,11 @@
-package module.mobile.app
+package module.mobile.app.algorithms
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -44,7 +45,7 @@ fun ResultScreen(
             isLoading -> CircularProgressIndicator()
             error != null -> {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("Ошибка: $error", color = androidx.compose.ui.graphics.Color.Red)
+                    Text("Ошибка: $error", color = Color.Red)
                     Spacer(modifier = Modifier.height(16.dp))
                     Button(onClick = onBackToDraw) { Text("Назад") }
                 }
