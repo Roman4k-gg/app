@@ -15,14 +15,22 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun ActionButton(text: String) {
+fun ActionButton(
+    text: String,
+    active: Boolean = false,
+    onClick: () -> Unit = {}
+) {
     OutlinedButton(
-        onClick = {},
+        onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
             .height(55.dp),
         shape = RoundedCornerShape(12.dp),
-        border = BorderStroke(2.dp, Color(0xFF0072BC))
+        border = BorderStroke(2.dp, Color(0xFF0072BC)),
+        colors = ButtonDefaults.outlinedButtonColors(
+            containerColor = if (active) Color(0xFFE7F3FF) else Color.White,
+            contentColor = Color.Black
+        )
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),

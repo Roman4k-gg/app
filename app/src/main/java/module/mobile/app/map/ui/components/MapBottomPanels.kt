@@ -100,7 +100,12 @@ fun MapBottomActionBar(onToggleSheet: () -> Unit, modifier: Modifier = Modifier)
 }
 
 @Composable
-fun MapBottomActionSheet(scrollState: ScrollState, modifier: Modifier = Modifier) {
+fun MapBottomActionSheet(
+    scrollState: ScrollState,
+    isRouteMode: Boolean,
+    onToggleRouteMode: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Surface(
         modifier = modifier
             .fillMaxWidth()
@@ -123,13 +128,17 @@ fun MapBottomActionSheet(scrollState: ScrollState, modifier: Modifier = Modifier
                 fontSize = 22.sp,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
-            ActionButton("Построить маршрут")
-            ActionButton("Заведения")
-            ActionButton("Кластеры еды")
-            ActionButton("Генетический маршрут еды")
-            ActionButton("Муравьиный тур по роще")
-            ActionButton("Муравьиный подбор коворкинга")
-            ActionButton("Дерево решений")
+            ActionButton(
+                text = "Построить маршрут",
+                active = isRouteMode,
+                onClick = onToggleRouteMode
+            )
+            ActionButton(text = "Заведения", onClick = {})
+            ActionButton(text = "Кластеры еды", onClick = {})
+            ActionButton(text = "Генетический маршрут еды", onClick = {})
+            ActionButton(text = "Муравьиный тур по роще", onClick = {})
+            ActionButton(text = "Муравьиный подбор коворкинга", onClick = {})
+            ActionButton(text = "Дерево решений", onClick = {})
             Spacer(modifier = Modifier.height(10.dp))
         }
     }

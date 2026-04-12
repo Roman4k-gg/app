@@ -2,6 +2,7 @@ package module.mobile.app.map.ui.screen
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.rememberTransformableState
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -16,6 +17,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -38,6 +40,7 @@ import module.mobile.app.map.ui.components.MapBottomActionBar
 import module.mobile.app.map.ui.components.MapBottomActionSheet
 import module.mobile.app.map.ui.components.MapTopBar
 import module.mobile.app.map.ui.components.MapZoomControls
+import module.mobile.app.map.ui.components.PoiContextCard
 import module.mobile.app.map.ui.components.PoiListDialog
 import module.mobile.app.map.ui.components.TapCoordinatesBadge
 import module.mobile.app.map.ui.components.ToolsMenuCard
@@ -92,6 +95,9 @@ fun MapScreen(goToBackMain: () -> Unit) {
     var startPoint by remember { mutableStateOf<Pair<Int, Int>?>(null) }
     var endPoint by remember { mutableStateOf<Pair<Int, Int>?>(null) }
     var path by remember { mutableStateOf<List<Pair<Int, Int>>?>(null) }
+    var selectedPoi by remember { mutableStateOf<PoiItem?>(null) }
+    var isRouteMode by remember { mutableStateOf(false) }
+    var routeSession by remember { mutableStateOf(0) }
     var isCalculating by remember { mutableStateOf(false) }
     var isBottomSheetVisible by remember { mutableStateOf(false) }
     val bottomMenuScrollState = rememberScrollState()
@@ -188,9 +194,16 @@ fun MapScreen(goToBackMain: () -> Unit) {
                 showWalkableCells = showWalkableCells,
                 showPoiMarkers = showPoiMarkers,
                 poiItems = poiItems,
+                selectedPoiId = selectedPoi?.id,
                 startPoint = startPoint,
                 endPoint = endPoint,
                 path = path,
+                onPoiClick = { poi ->
+                    if (isRouteMode) return@MapCanvasLayer
+                    selectedPoi = poi
+                    lastTappedCell = Pair(poi.row, poi.col)
+                    lastTappedValue = grid?.getOrNull(poi.row)?.getOrNull(poi.col)
+                },
                 onTapCell = { clickedRow, clickedCol ->
                     val currentGrid = grid ?: return@MapCanvasLayer
                     lastTappedCell = Pair(clickedRow, clickedCol)
@@ -223,26 +236,43 @@ fun MapScreen(goToBackMain: () -> Unit) {
 
                         EditorMode.None -> {
                             if (isCalculating) return@MapCanvasLayer
-                            if (currentGrid[clickedRow][clickedCol] == 1) {
+
+                            if (isRouteMode) {
+                                selectedPoi = null
+                                if (currentGrid[clickedRow][clickedCol] != 1) return@MapCanvasLayer
+
                                 if (startPoint == null || endPoint != null) {
                                     startPoint = Pair(clickedRow, clickedCol)
                                     endPoint = null
                                     path = null
-                                } else if (endPoint == null) {
-                                    endPoint = Pair(clickedRow, clickedCol)
-                                    isCalculating = true
-                                    val start = startPoint ?: return@MapCanvasLayer
-                                    val goal = endPoint ?: return@MapCanvasLayer
+                                    return@MapCanvasLayer
+                                }
 
-                                    coroutineScope.launch(Dispatchers.Default) {
-                                        val calculatedPath = astar(currentGrid, start, goal)
-                                        withContext(Dispatchers.Main) {
+                                endPoint = Pair(clickedRow, clickedCol)
+                                isCalculating = true
+                                val start = startPoint ?: return@MapCanvasLayer
+                                val goal = endPoint ?: return@MapCanvasLayer
+                                val sessionAtLaunch = routeSession
+
+                                coroutineScope.launch(Dispatchers.Default) {
+                                    val calculatedPath = astar(currentGrid, start, goal)
+                                    withContext(Dispatchers.Main) {
+                                        if (isRouteMode && routeSession == sessionAtLaunch) {
                                             path = calculatedPath
-                                            isCalculating = false
                                         }
+                                        isCalculating = false
                                     }
                                 }
+                                return@MapCanvasLayer
                             }
+
+                            val clickedPoi = poiItems.firstOrNull { it.row == clickedRow && it.col == clickedCol }
+                            if (clickedPoi != null) {
+                                selectedPoi = clickedPoi
+                                return@MapCanvasLayer
+                            }
+
+                            selectedPoi = null
                         }
                     }
                 },
@@ -326,9 +356,43 @@ fun MapScreen(goToBackMain: () -> Unit) {
                 modifier = Modifier.align(Alignment.BottomCenter)
             )
 
+            selectedPoi?.let { poi ->
+                PoiContextCard(
+                    poi = poi,
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .zIndex(2f)
+                        .fillMaxWidth()
+                        .padding(start = 25.dp, end = 25.dp, bottom = 20.dp)
+                )
+            }
+
             if (isBottomSheetVisible) {
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ) {
+                            isBottomSheetVisible = false
+                        }
+                )
+
                 MapBottomActionSheet(
                     scrollState = bottomMenuScrollState,
+                    isRouteMode = isRouteMode,
+                    onToggleRouteMode = {
+                        val shouldEnable = !isRouteMode
+                        isRouteMode = shouldEnable
+                        routeSession += 1
+                        isCalculating = false
+                        startPoint = null
+                        endPoint = null
+                        path = null
+                        selectedPoi = null
+                        isBottomSheetVisible = false
+                    },
                     modifier = Modifier.align(Alignment.BottomStart)
                 )
             }
