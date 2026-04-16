@@ -17,17 +17,26 @@ class Matrix(val rows: Int, val cols: Int) {
     fun add(other: Matrix) = Matrix(rows, cols) { i, j -> data[i][j] + other.data[i][j] }
     fun sub(other: Matrix) = Matrix(rows, cols) { i, j -> data[i][j] - other.data[i][j] }
     fun mul(other: Matrix) = Matrix(rows, cols) { i, j -> data[i][j] * other.data[i][j] }
+
     fun matMul(other: Matrix): Matrix {
-        require(cols == other.rows)
+        require(cols == other.rows) { "Matrix dimensions mismatch: ${this.rows}x${this.cols} * ${other.rows}x${other.cols}" }
         return Matrix(rows, other.cols) { i, j ->
-            (0 until cols).sumOf { k -> data[i][k] * other.data[k][j] }
+            var sum = 0.0
+            for (k in 0 until cols) {
+                sum += data[i][k] * other.data[k][j]
+            }
+            sum
         }
     }
+
     fun transpose() = Matrix(cols, rows) { i, j -> data[j][i] }
 
     companion object {
-        fun fromList(list: List<Double>, rows: Int, cols: Int) = Matrix(rows, cols) { i, j ->
-            list[i * cols + j]
+        fun fromList(list: List<Double>, rows: Int, cols: Int): Matrix {
+            require(list.size == rows * cols) { "List size ${list.size} does not match matrix dimensions ${rows}x${cols}" }
+            return Matrix(rows, cols) { i, j ->
+                list[i * cols + j]
+            }
         }
     }
 }
@@ -35,6 +44,7 @@ class Matrix(val rows: Int, val cols: Int) {
 object Activations {
     fun relu(x: Double) = if (x > 0) x else 0.0
     fun reluDerivative(x: Double) = if (x > 0) 1.0 else 0.0
+
     fun softmax(m: Matrix): Matrix {
         val maxPerRow = m.data.map { row -> row.maxOrNull() ?: 0.0 }
         val expM = Matrix(m.rows, m.cols) { i, j ->
@@ -52,17 +62,13 @@ class DenseLayer(val inputSize: Int, val outputSize: Int) {
     val biases = Matrix(1, outputSize)
     var input: Matrix? = null
 
-    init {
+    private fun randomizeWeights() {
         val std = sqrt(2.0 / inputSize)
-        randomizeWeights(-std, std)
-    }
-
-    private fun randomizeWeights(min: Double, max: Double) {
         for (i in 0 until weights.rows)
             for (j in 0 until weights.cols)
-                weights.data[i][j] = Random.nextDouble(min, max)
+                weights.data[i][j] = Random.nextDouble(-std, std)
         for (j in 0 until biases.cols)
-            biases.data[0][j] = Random.nextDouble(min, max)
+            biases.data[0][j] = 0.0
     }
 
     fun forward(input: Matrix): Matrix {
@@ -115,19 +121,37 @@ class NeuralNetwork(
 
     fun loadWeights(flatWeights: List<Double>) {
         var idx = 0
+        val totalExpected = flatWeights.size
+
         for (layer in layers) {
-            // Веса
-            for (i in 0 until layer.weights.rows) {
-                for (j in 0 until layer.weights.cols) {
-                    layer.weights.data[i][j] = flatWeights[idx++]
+            val wRows = layer.weights.rows
+            val wCols = layer.weights.cols
+
+            for (i in 0 until wRows) {
+                for (j in 0 until wCols) {
+                    if (idx < totalExpected) {
+                        layer.weights.data[i][j] = flatWeights[idx++]
+                    } else {
+                        println("Error: Not enough weights in file!")
+                        return
+                    }
                 }
             }
-            for (j in 0 until layer.biases.cols) {
-                layer.biases.data[0][j] = flatWeights[idx++]
+            val bCols = layer.biases.cols
+            for (j in 0 until bCols) {
+                if (idx < totalExpected) {
+                    layer.biases.data[0][j] = flatWeights[idx++]
+                } else {
+                    println("Error: Not enough biases in file!")
+                    return
+                }
             }
         }
-        if (idx != flatWeights.size) {
-            println("Warning: loaded ${flatWeights.size} weights but used $idx")
+
+        if (idx != totalExpected) {
+            println("Warning: Loaded $idx weights, but file had $totalExpected. Mismatch!")
+        } else {
+            println("Successfully loaded $idx weights.")
         }
     }
 }
