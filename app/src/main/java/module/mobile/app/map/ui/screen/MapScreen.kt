@@ -1,9 +1,11 @@
 package module.mobile.app.map.ui.screen
 
+import android.widget.Toast
 import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,9 +20,16 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import java.util.Calendar
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import module.mobile.app.algorithms.AntColonyAlgorithm
+import module.mobile.app.algorithms.AntCoworkRequest
+import module.mobile.app.algorithms.AntTourRequest
+import module.mobile.app.algorithms.GeneticFoodRequest
+import module.mobile.app.algorithms.GeneticFoodRouteAlgorithm
 import module.mobile.app.algorithms.astar
 import module.mobile.app.map.data.loadMatrix
 import module.mobile.app.map.data.loadPois
@@ -34,8 +43,12 @@ import module.mobile.app.map.model.FoodBonus
 import module.mobile.app.map.model.PoiItem
 import module.mobile.app.map.model.StudentSpaceBonus
 import module.mobile.app.map.ui.components.MapCanvasLayer
+import module.mobile.app.map.ui.components.AntCoworkSettingsDialog
+import module.mobile.app.map.ui.components.AntLandmarksDialog
 import module.mobile.app.map.ui.components.CreatePoiDialog
 import module.mobile.app.map.ui.components.EditorPanel
+import module.mobile.app.map.ui.components.GeneticCartDialog
+import module.mobile.app.map.ui.components.GeneticFoodMenuSheet
 import module.mobile.app.map.ui.components.MapBottomActionBar
 import module.mobile.app.map.ui.components.MapBottomActionSheet
 import module.mobile.app.map.ui.components.MapTopBar
@@ -100,7 +113,51 @@ fun MapScreen(goToBackMain: () -> Unit) {
     var routeSession by remember { mutableStateOf(0) }
     var isCalculating by remember { mutableStateOf(false) }
     var isBottomSheetVisible by remember { mutableStateOf(false) }
+    var isGeneticMenuVisible by remember { mutableStateOf(false) }
+    var showGeneticCartDialog by remember { mutableStateOf(false) }
+    var geneticCart by remember { mutableStateOf<Map<String, Int>>(emptyMap()) }
+    var isSelectingGeneticStart by remember { mutableStateOf(false) }
+    var isGeneticRunning by remember { mutableStateOf(false) }
+    var geneticIteration by remember { mutableStateOf(0) }
+    var geneticTotalIterations by remember { mutableStateOf(0) }
+    var geneticBestScore by remember { mutableStateOf<Double?>(null) }
+    var geneticMissingItemsCount by remember { mutableStateOf(0) }
+    var geneticJob by remember { mutableStateOf<Job?>(null) }
+
+    var showAntLandmarksDialog by remember { mutableStateOf(false) }
+    var showAntCoworkDialog by remember { mutableStateOf(false) }
+    var antSelectedLandmarkIds by remember { mutableStateOf<Set<String>>(emptySet()) }
+    var antStudentsInput by remember { mutableStateOf("") }
+    var antStudentCount by remember { mutableStateOf(0) }
+    var antPendingAction by remember { mutableStateOf(AntPendingAction.None) }
+    var antJob by remember { mutableStateOf<Job?>(null) }
+    var isAntRunning by remember { mutableStateOf(false) }
+    var antIteration by remember { mutableStateOf(0) }
+    var antTotalIterations by remember { mutableStateOf(0) }
+    var antBestScore by remember { mutableStateOf<Double?>(null) }
+    var antStatusLine by remember { mutableStateOf("") }
+
     val bottomMenuScrollState = rememberScrollState()
+    val geneticMenuItems by remember(poiItems) {
+        derivedStateOf {
+            poiItems
+                .asSequence()
+                .filter { it.typeId == "food" }
+                .mapNotNull { it.foodBonus }
+                .flatMap { it.menu.asSequence() }
+                .map { it.trim() }
+                .filter { it.isNotBlank() }
+                .distinct()
+                .sortedBy { it.lowercase() }
+                .toList()
+        }
+    }
+    val landmarkPois by remember(poiItems) {
+        derivedStateOf { poiItems.filter { it.typeId == "landmark" } }
+    }
+    val studentSpacePois by remember(poiItems) {
+        derivedStateOf { poiItems.filter { it.typeId == "student_space" && it.spaceBonus != null } }
+    }
 
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
@@ -199,7 +256,7 @@ fun MapScreen(goToBackMain: () -> Unit) {
                 endPoint = endPoint,
                 path = path,
                 onPoiClick = { poi ->
-                    if (isRouteMode) return@MapCanvasLayer
+                    if (isRouteMode || isSelectingGeneticStart || isGeneticRunning || antPendingAction != AntPendingAction.None || isAntRunning) return@MapCanvasLayer
                     selectedPoi = poi
                     lastTappedCell = Pair(poi.row, poi.col)
                     lastTappedValue = grid?.getOrNull(poi.row)?.getOrNull(poi.col)
@@ -236,6 +293,201 @@ fun MapScreen(goToBackMain: () -> Unit) {
 
                         EditorMode.None -> {
                             if (isCalculating) return@MapCanvasLayer
+
+                            if (antPendingAction != AntPendingAction.None) {
+                                if (currentGrid[clickedRow][clickedCol] != 1) {
+                                    Toast.makeText(
+                                        context,
+                                        "Старт должен быть на проходимой клетке (значение 1).",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    return@MapCanvasLayer
+                                }
+
+                                val start = Pair(clickedRow, clickedCol)
+                                val action = antPendingAction
+                                antPendingAction = AntPendingAction.None
+                                startPoint = start
+                                endPoint = null
+                                path = null
+                                selectedPoi = null
+
+                                val gridSnapshot = Array(currentGrid.size) { row -> currentGrid[row].clone() }
+
+                                antJob?.cancel()
+                                antJob = coroutineScope.launch(Dispatchers.Default) {
+                                    val algorithm = AntColonyAlgorithm()
+
+                                    when (action) {
+                                        AntPendingAction.Landmarks -> {
+                                            val selectedLandmarks = landmarkPois.filter { it.id in antSelectedLandmarkIds }
+                                            if (selectedLandmarks.isEmpty()) {
+                                                withContext(Dispatchers.Main) {
+                                                    Toast.makeText(
+                                                        context,
+                                                        "Выберите хотя бы одну достопримечательность.",
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
+                                                }
+                                                return@launch
+                                            }
+
+                                            val request = AntTourRequest(
+                                                grid = gridSnapshot,
+                                                startCell = start,
+                                                landmarks = selectedLandmarks
+                                            )
+
+                                            withContext(Dispatchers.Main) {
+                                                isAntRunning = true
+                                                isCalculating = true
+                                                antIteration = 0
+                                                antTotalIterations = request.config.iterations
+                                                antBestScore = null
+                                                antStatusLine = "Точек в туре: ${selectedLandmarks.size}"
+                                            }
+
+                                            try {
+                                                algorithm.runLandmarkTour(request).collect { progress ->
+                                                    withContext(Dispatchers.Main) {
+                                                        antIteration = progress.iteration
+                                                        antTotalIterations = progress.totalIterations
+                                                        antBestScore = progress.bestScore
+                                                        antStatusLine = "Точек в лучшем маршруте: ${progress.bestVisitOrder.size}"
+                                                        if (progress.bestPath.isNotEmpty()) {
+                                                            path = progress.bestPath
+                                                            endPoint = progress.bestPath.last()
+                                                        }
+                                                    }
+                                                }
+                                            } finally {
+                                                withContext(Dispatchers.Main) {
+                                                    isAntRunning = false
+                                                    isCalculating = false
+                                                    Toast.makeText(context, "Муравьиный тур завершен.", Toast.LENGTH_SHORT).show()
+                                                }
+                                            }
+                                        }
+
+                                        AntPendingAction.Cowork -> {
+                                            val request = AntCoworkRequest(
+                                                grid = gridSnapshot,
+                                                startCell = start,
+                                                studentCount = antStudentCount,
+                                                spaces = studentSpacePois
+                                            )
+
+                                            withContext(Dispatchers.Main) {
+                                                isAntRunning = true
+                                                isCalculating = true
+                                                antIteration = 0
+                                                antTotalIterations = request.config.iterations
+                                                antBestScore = null
+                                                antStatusLine = "Студентов в задаче: ${request.studentCount}"
+                                            }
+
+                                            try {
+                                                algorithm.runCoworkOptimization(request).collect { progress ->
+                                                    withContext(Dispatchers.Main) {
+                                                        antIteration = progress.iteration
+                                                        antTotalIterations = progress.totalIterations
+                                                        antBestScore = progress.bestScore
+                                                        val primaryName = progress.primarySpace?.name ?: "нет"
+                                                        val assigned = progress.allocation.sumOf { it.assignedStudents }
+                                                        antStatusLine = "Основной коворк: $primaryName | Распределено: $assigned"
+                                                        if (progress.primaryPath.isNotEmpty()) {
+                                                            path = progress.primaryPath
+                                                            endPoint = progress.primaryPath.last()
+                                                        }
+                                                    }
+                                                }
+                                            } finally {
+                                                withContext(Dispatchers.Main) {
+                                                    isAntRunning = false
+                                                    isCalculating = false
+                                                    Toast.makeText(context, "Подбор коворкинга завершен.", Toast.LENGTH_SHORT).show()
+                                                }
+                                            }
+                                        }
+
+                                        AntPendingAction.None -> Unit
+                                    }
+                                }
+                                return@MapCanvasLayer
+                            }
+
+                            if (isSelectingGeneticStart) {
+                                if (currentGrid[clickedRow][clickedCol] != 1) {
+                                    Toast.makeText(
+                                        context,
+                                        "Старт должен быть на проходимой клетке (значение 1).",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    return@MapCanvasLayer
+                                }
+
+                                val start = Pair(clickedRow, clickedCol)
+                                isSelectingGeneticStart = false
+                                startPoint = start
+                                endPoint = null
+                                path = null
+                                selectedPoi = null
+
+                                val now = Calendar.getInstance()
+                                val startMinuteOfDay = now.get(Calendar.HOUR_OF_DAY) * 60 + now.get(Calendar.MINUTE)
+                                val gridSnapshot = Array(currentGrid.size) { row -> currentGrid[row].clone() }
+                                val poisSnapshot = poiItems.toList()
+                                val cartSnapshot = geneticCart.toMap()
+
+                                geneticJob?.cancel()
+                                geneticJob = coroutineScope.launch(Dispatchers.Default) {
+                                    val algorithm = GeneticFoodRouteAlgorithm()
+                                    val request = GeneticFoodRequest(
+                                        grid = gridSnapshot,
+                                        startCell = start,
+                                        cart = cartSnapshot,
+                                        pois = poisSnapshot,
+                                        startMinuteOfDay = startMinuteOfDay
+                                    )
+
+                                    withContext(Dispatchers.Main) {
+                                        isGeneticRunning = true
+                                        isCalculating = true
+                                        geneticIteration = 0
+                                        geneticTotalIterations = request.config.generations
+                                        geneticBestScore = null
+                                        geneticMissingItemsCount = cartSnapshot.values.sum()
+                                    }
+
+                                    try {
+                                        algorithm.run(request).collect { progress ->
+                                            withContext(Dispatchers.Main) {
+                                                geneticIteration = progress.iteration
+                                                geneticTotalIterations = progress.totalIterations
+                                                geneticBestScore = progress.best.score
+                                                geneticMissingItemsCount = progress.best.missingItems.values.sum()
+                                                if (progress.best.fullPath.isNotEmpty()) {
+                                                    path = progress.best.fullPath
+                                                    endPoint = progress.best.fullPath.last()
+                                                }
+                                            }
+                                        }
+                                    } finally {
+                                        withContext(Dispatchers.Main) {
+                                            isGeneticRunning = false
+                                            isCalculating = false
+                                            Toast.makeText(
+                                                context,
+                                                "Генетический расчет завершен. Не куплено: $geneticMissingItemsCount",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                    }
+                                }
+                                return@MapCanvasLayer
+                            }
+
+                            if (isGeneticRunning || isAntRunning) return@MapCanvasLayer
 
                             if (isRouteMode) {
                                 selectedPoi = null
@@ -352,9 +604,80 @@ fun MapScreen(goToBackMain: () -> Unit) {
             )
 
             MapBottomActionBar(
-                onToggleSheet = { isBottomSheetVisible = !isBottomSheetVisible },
+                onToggleSheet = {
+                    isBottomSheetVisible = !isBottomSheetVisible
+                    if (isBottomSheetVisible) {
+                        isGeneticMenuVisible = false
+                        showGeneticCartDialog = false
+                    }
+                },
                 modifier = Modifier.align(Alignment.BottomCenter)
             )
+
+            if (isSelectingGeneticStart || isGeneticRunning) {
+                Surface(
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(top = 12.dp)
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    color = Color.White,
+                    border = BorderStroke(2.dp, Color(0xFF0072BC)),
+                    shadowElevation = 8.dp
+                ) {
+                    Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
+                        Text(
+                            text = if (isSelectingGeneticStart) {
+                                "Генетический маршрут: выберите стартовую точку на дорожке"
+                            } else {
+                                "Генетический маршрут: итерация $geneticIteration/$geneticTotalIterations"
+                            },
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        if (isGeneticRunning) {
+                            Text(
+                                text = "Лучший score: ${geneticBestScore?.let { String.format("%.2f", it) } ?: "-"} | Не куплено: $geneticMissingItemsCount",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color.Gray
+                            )
+                        }
+                    }
+                }
+            }
+
+            if (antPendingAction != AntPendingAction.None || isAntRunning) {
+                val topPadding = if (isSelectingGeneticStart || isGeneticRunning) 86.dp else 12.dp
+                Surface(
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(top = topPadding)
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    color = Color.White,
+                    border = BorderStroke(2.dp, Color(0xFF0072BC)),
+                    shadowElevation = 8.dp
+                ) {
+                    Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
+                        Text(
+                            text = if (antPendingAction != AntPendingAction.None) {
+                                "Муравьиный алгоритм: выберите стартовую точку на дорожке"
+                            } else {
+                                "Муравьиный алгоритм: итерация $antIteration/$antTotalIterations"
+                            },
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        if (isAntRunning) {
+                            Text(
+                                text = "Лучший score: ${antBestScore?.let { String.format("%.2f", it) } ?: "-"} | $antStatusLine",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color.Gray
+                            )
+                        }
+                    }
+                }
+            }
 
             selectedPoi?.let { poi ->
                 PoiContextCard(
@@ -367,7 +690,7 @@ fun MapScreen(goToBackMain: () -> Unit) {
                 )
             }
 
-            if (isBottomSheetVisible) {
+            if (isBottomSheetVisible || isGeneticMenuVisible) {
                 Box(
                     modifier = Modifier
                         .matchParentSize()
@@ -376,13 +699,23 @@ fun MapScreen(goToBackMain: () -> Unit) {
                             indication = null
                         ) {
                             isBottomSheetVisible = false
+                            isGeneticMenuVisible = false
+                            showGeneticCartDialog = false
                         }
                 )
+            }
 
+            if (isBottomSheetVisible) {
                 MapBottomActionSheet(
                     scrollState = bottomMenuScrollState,
                     isRouteMode = isRouteMode,
                     onToggleRouteMode = {
+                        geneticJob?.cancel()
+                        isGeneticRunning = false
+                        isSelectingGeneticStart = false
+                        antJob?.cancel()
+                        isAntRunning = false
+                        antPendingAction = AntPendingAction.None
                         val shouldEnable = !isRouteMode
                         isRouteMode = shouldEnable
                         routeSession += 1
@@ -393,7 +726,158 @@ fun MapScreen(goToBackMain: () -> Unit) {
                         selectedPoi = null
                         isBottomSheetVisible = false
                     },
+                    onOpenGeneticMenu = {
+                        antJob?.cancel()
+                        isAntRunning = false
+                        antPendingAction = AntPendingAction.None
+                        isBottomSheetVisible = false
+                        isRouteMode = false
+                        routeSession += 1
+                        isCalculating = false
+                        startPoint = null
+                        endPoint = null
+                        path = null
+                        selectedPoi = null
+                        isGeneticMenuVisible = true
+                    },
+                    onOpenAntLandmarks = {
+                        geneticJob?.cancel()
+                        isGeneticRunning = false
+                        isSelectingGeneticStart = false
+                        antJob?.cancel()
+                        isAntRunning = false
+                        antPendingAction = AntPendingAction.None
+                        isBottomSheetVisible = false
+                        isGeneticMenuVisible = false
+                        showGeneticCartDialog = false
+                        showAntLandmarksDialog = true
+                        if (antSelectedLandmarkIds.isEmpty()) {
+                            antSelectedLandmarkIds = landmarkPois.map { it.id }.toSet()
+                        }
+                    },
+                    onOpenAntCowork = {
+                        geneticJob?.cancel()
+                        isGeneticRunning = false
+                        isSelectingGeneticStart = false
+                        antJob?.cancel()
+                        isAntRunning = false
+                        antPendingAction = AntPendingAction.None
+                        isBottomSheetVisible = false
+                        isGeneticMenuVisible = false
+                        showGeneticCartDialog = false
+                        showAntCoworkDialog = true
+                    },
                     modifier = Modifier.align(Alignment.BottomStart)
+                )
+            }
+
+            if (isGeneticMenuVisible) {
+                GeneticFoodMenuSheet(
+                    menuItems = geneticMenuItems,
+                    cartCount = geneticCart.values.sum(),
+                    onAddToCart = { menuItem ->
+                        val current = geneticCart[menuItem] ?: 0
+                        geneticCart = geneticCart + (menuItem to (current + 1))
+                    },
+                    onOpenCart = { showGeneticCartDialog = true },
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .zIndex(3f)
+                )
+            }
+
+            if (showGeneticCartDialog) {
+                GeneticCartDialog(
+                    cartItems = geneticCart.entries
+                        .map { it.key to it.value }
+                        .sortedBy { it.first.lowercase() },
+                    onAdd = { menuItem ->
+                        val current = geneticCart[menuItem] ?: 0
+                        geneticCart = geneticCart + (menuItem to (current + 1))
+                    },
+                    onRemove = { menuItem ->
+                        val current = geneticCart[menuItem]
+                        if (current != null) {
+                            geneticCart = if (current <= 1) {
+                                geneticCart - menuItem
+                            } else {
+                                geneticCart + (menuItem to (current - 1))
+                            }
+                        }
+                    },
+                    onClear = { geneticCart = emptyMap() },
+                    onBuy = {
+                        showGeneticCartDialog = false
+                        isGeneticMenuVisible = false
+                        isBottomSheetVisible = false
+                        isRouteMode = false
+                        routeSession += 1
+                        isCalculating = false
+                        selectedPoi = null
+                        path = null
+                        endPoint = null
+                        geneticJob?.cancel()
+                        isGeneticRunning = false
+                        isSelectingGeneticStart = true
+                        antJob?.cancel()
+                        isAntRunning = false
+                        antPendingAction = AntPendingAction.None
+                        Toast.makeText(
+                            context,
+                            "Выберите стартовую точку на карте для запуска генетики.",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    },
+                    onDismiss = { showGeneticCartDialog = false }
+                )
+            }
+
+            if (showAntLandmarksDialog) {
+                AntLandmarksDialog(
+                    landmarks = landmarkPois,
+                    selectedIds = antSelectedLandmarkIds,
+                    onToggle = { id ->
+                        antSelectedLandmarkIds = if (id in antSelectedLandmarkIds) {
+                            antSelectedLandmarkIds - id
+                        } else {
+                            antSelectedLandmarkIds + id
+                        }
+                    },
+                    onSelectAll = { antSelectedLandmarkIds = landmarkPois.map { it.id }.toSet() },
+                    onClear = { antSelectedLandmarkIds = emptySet() },
+                    onStart = {
+                        if (antSelectedLandmarkIds.isEmpty()) {
+                            Toast.makeText(context, "Выберите хотя бы одну достопримечательность.", Toast.LENGTH_SHORT).show()
+                            return@AntLandmarksDialog
+                        }
+                        showAntLandmarksDialog = false
+                        antPendingAction = AntPendingAction.Landmarks
+                        Toast.makeText(context, "Выберите стартовую точку на карте.", Toast.LENGTH_SHORT).show()
+                    },
+                    onDismiss = { showAntLandmarksDialog = false }
+                )
+            }
+
+            if (showAntCoworkDialog) {
+                AntCoworkSettingsDialog(
+                    studentsValue = antStudentsInput,
+                    onStudentsChange = { antStudentsInput = it },
+                    onFindCowork = {
+                        val count = antStudentsInput.toIntOrNull()
+                        if (count == null || count <= 0) {
+                            Toast.makeText(context, "Введите корректное число студентов.", Toast.LENGTH_SHORT).show()
+                            return@AntCoworkSettingsDialog
+                        }
+                        if (studentSpacePois.isEmpty()) {
+                            Toast.makeText(context, "Нет доступных студенческих пространств.", Toast.LENGTH_SHORT).show()
+                            return@AntCoworkSettingsDialog
+                        }
+                        antStudentCount = count
+                        showAntCoworkDialog = false
+                        antPendingAction = AntPendingAction.Cowork
+                        Toast.makeText(context, "Выберите стартовую точку на карте.", Toast.LENGTH_SHORT).show()
+                    },
+                    onDismiss = { showAntCoworkDialog = false }
                 )
             }
 
@@ -484,5 +968,8 @@ fun MapScreen(goToBackMain: () -> Unit) {
     }
 }
 
-
-
+private enum class AntPendingAction {
+    None,
+    Landmarks,
+    Cowork
+}
