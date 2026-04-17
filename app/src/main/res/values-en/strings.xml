@@ -90,6 +90,7 @@
 
     <string name="map_choose_action">Choose action</string>
     <string name="map_action_build_route">Build route (A*)</string>
+    <string name="map_action_set_start_geolocation">Set start from geolocation</string>
     <string name="map_action_food_clusters">Food clusters</string>
     <string name="map_action_genetic_food_route">Genetic food route</string>
     <string name="map_action_ant_landmarks">Ant landmarks tour</string>
@@ -154,6 +155,10 @@
     <string name="map_toast_no_food_pois">No food POI points found.</string>
     <string name="map_toast_clusters_done_with_diff">Done. Differing points: %1$d</string>
     <string name="map_toast_clusters_done">Done. Clusters are built.</string>
+    <string name="map_toast_location_permission_denied">Location permission was not granted.</string>
+    <string name="map_toast_location_unavailable">Unable to detect current location.</string>
+    <string name="map_toast_no_walkable_near_location">No walkable path found near your location.</string>
+    <string name="map_toast_start_set_from_location">Start set: row=%1$d col=%2$d</string>
 
     <string name="map_astar_status_select_start">A*: select start point</string>
     <string name="map_astar_status_select_end">A*: select end point</string>

@@ -90,6 +90,7 @@
 
     <string name="map_choose_action">Выберите действие</string>
     <string name="map_action_build_route">Построить маршрут (A*)</string>
+    <string name="map_action_set_start_geolocation">Определить старт по геолокации</string>
     <string name="map_action_food_clusters">Кластеры еды</string>
     <string name="map_action_genetic_food_route">Генетический маршрут еды</string>
     <string name="map_action_ant_landmarks">Муравьиный тур по достопримечательностям</string>
@@ -154,6 +155,10 @@
     <string name="map_toast_no_food_pois">Не найдено точек заведений (food).</string>
     <string name="map_toast_clusters_done_with_diff">Готово. Различающихся точек: %1$d</string>
     <string name="map_toast_clusters_done">Готово. Кластеры построены.</string>
+    <string name="map_toast_location_permission_denied">Разрешение на геолокацию не выдано.</string>
+    <string name="map_toast_location_unavailable">Не удалось определить текущую геолокацию.</string>
+    <string name="map_toast_no_walkable_near_location">Рядом с геопозицией нет доступной дорожки.</string>
+    <string name="map_toast_start_set_from_location">Старт определен: row=%1$d col=%2$d</string>
 
     <string name="map_astar_status_select_start">A*: выберите стартовую точку</string>
     <string name="map_astar_status_select_end">A*: выберите конечную точку</string>

@@ -10,8 +10,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -22,7 +25,11 @@ import androidx.compose.ui.unit.dp
 import module.mobile.app.R
 
 @Composable
-fun MapTopBar(onToggleTools: () -> Unit, onBack: () -> Unit) {
+fun MapTopBar(
+    onSetStartFromLocation: () -> Unit,
+    onToggleTools: () -> Unit,
+    onBack: () -> Unit
+) {
     val colorScheme = MaterialTheme.colorScheme
 
     Box(
@@ -59,6 +66,23 @@ fun MapTopBar(onToggleTools: () -> Unit, onBack: () -> Unit) {
                     modifier = Modifier.size(30.dp)
                 )
             }
+        }
+        Button(
+            onClick = onSetStartFromLocation,
+            colors = ButtonDefaults.buttonColors(containerColor = colorScheme.secondaryContainer),
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(end = 131.dp, top = 45.dp)
+                .size(45.dp),
+            shape = RoundedCornerShape(10.dp),
+            border = BorderStroke(2.dp, colorScheme.outline),
+            contentPadding = PaddingValues(0.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Filled.MyLocation,
+                contentDescription = null,
+                modifier = Modifier.size(24.dp)
+            )
         }
         Button(
             onClick = onBack,
