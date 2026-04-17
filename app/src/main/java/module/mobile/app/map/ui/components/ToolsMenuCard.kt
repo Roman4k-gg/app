@@ -31,6 +31,9 @@ fun ToolsMenuCard(
     onShowPoiMarkersChange: (Boolean) -> Unit,
     showTapCoordinates: Boolean,
     onShowTapCoordinatesChange: (Boolean) -> Unit,
+    ribbonModeEnabled: Boolean,
+    onRibbonModeChange: (Boolean) -> Unit,
+    onClearRibbons: () -> Unit,
     editorVisible: Boolean,
     onToggleEditor: () -> Unit
 ) {
@@ -79,6 +82,24 @@ fun ToolsMenuCard(
             ) {
                 Text("Показывать координаты тапа", fontSize = 14.sp)
                 Switch(checked = showTapCoordinates, onCheckedChange = onShowTapCoordinatesChange)
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text("Режим лент A*", fontSize = 14.sp)
+                Switch(checked = ribbonModeEnabled, onCheckedChange = onRibbonModeChange)
+            }
+
+            OutlinedButton(
+                onClick = onClearRibbons,
+                modifier = Modifier.fillMaxWidth(),
+                border = BorderStroke(2.dp, Color(0xFF0072BC)),
+                shape = RoundedCornerShape(10.dp)
+            ) {
+                Text(text = "Очистить ленты", color = Color.Black)
             }
 
             OutlinedButton(

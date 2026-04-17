@@ -47,12 +47,22 @@ fun MapCanvasLayer(
     matrixRows: Int,
     matrixCols: Int,
     showWalkableCells: Boolean,
+    ribbonModeEnabled: Boolean,
+    ribbonCells: Set<Pair<Int, Int>>,
     showPoiMarkers: Boolean,
     poiItems: List<PoiItem>,
     selectedPoiId: String?,
     startPoint: Pair<Int, Int>?,
     endPoint: Pair<Int, Int>?,
     path: List<Pair<Int, Int>>?,
+    clusterAssignments: Map<String, Int>,
+    clusterZoneCells: Map<Pair<Int, Int>, Int>,
+    clusterDiffPoiIds: Set<String>,
+    astarOpenSet: Set<Pair<Int, Int>>,
+    astarClosedSet: Set<Pair<Int, Int>>,
+    astarCurrentCell: Pair<Int, Int>?,
+    astarAnalyzingCell: Pair<Int, Int>?,
+    isAstarAnimating: Boolean,
     onPoiClick: (PoiItem) -> Unit,
     onTapCell: (Int, Int) -> Unit,
     onDrawStart: (Int, Int) -> Unit,
@@ -94,8 +104,8 @@ fun MapCanvasLayer(
                             onTapCell(row, col)
                         }
                     }
-                    .pointerInput(grid, editorMode) {
-                        if (grid == null || (editorMode != EditorMode.DrawOne && editorMode != EditorMode.DrawZero)) {
+                    .pointerInput(grid, editorMode, ribbonModeEnabled) {
+                        if (grid == null || ((editorMode != EditorMode.DrawOne && editorMode != EditorMode.DrawZero) && !ribbonModeEnabled)) {
                             return@pointerInput
                         }
 
@@ -140,9 +150,25 @@ fun MapCanvasLayer(
                 val cellWidth = size.width / matrixCols
                 val cellHeight = size.height / matrixRows
                 val walkableOverlayColor = if (gridVersion >= 0) Color(0x4D00C853) else Color(0x4D00C853)
+                val ribbonOverlayColor = Color(0x99FF6D00)
+                val zoneOverlayAlpha = 0.20f
 
                 fun getCenter(row: Int, col: Int): Offset {
                     return Offset((col + 0.5f) * cellWidth, (row + 0.5f) * cellHeight)
+                }
+
+                if (clusterZoneCells.isNotEmpty()) {
+                    clusterZoneCells.forEach { (cell, clusterIdx) ->
+                        val r = cell.first
+                        val c = cell.second
+                        if (r in 0 until matrixRows && c in 0 until matrixCols) {
+                            drawRect(
+                                color = clusterIndexColor(clusterIdx).copy(alpha = zoneOverlayAlpha),
+                                topLeft = Offset(c * cellWidth, r * cellHeight),
+                                size = androidx.compose.ui.geometry.Size(cellWidth, cellHeight)
+                            )
+                        }
+                    }
                 }
 
                 if (showWalkableCells) {
@@ -158,6 +184,49 @@ fun MapCanvasLayer(
                                     )
                                 }
                             }
+                        }
+                    }
+                }
+
+                if (ribbonCells.isNotEmpty()) {
+                    ribbonCells.forEach { (r, c) ->
+                        if (r in 0 until matrixRows && c in 0 until matrixCols) {
+                            drawRect(
+                                color = ribbonOverlayColor,
+                                topLeft = Offset(c * cellWidth, r * cellHeight),
+                                size = androidx.compose.ui.geometry.Size(cellWidth, cellHeight)
+                            )
+                        }
+                    }
+                }
+
+                if (isAstarAnimating) {
+                    astarClosedSet.forEach { (r, c) ->
+                        if (r in 0 until matrixRows && c in 0 until matrixCols) {
+                            drawRect(
+                                color = Color(0x552196F3),
+                                topLeft = Offset(c * cellWidth, r * cellHeight),
+                                size = androidx.compose.ui.geometry.Size(cellWidth, cellHeight)
+                            )
+                        }
+                    }
+
+                    astarOpenSet.forEach { (r, c) ->
+                        if (r in 0 until matrixRows && c in 0 until matrixCols) {
+                            drawRect(
+                                color = Color(0x5532CD32),
+                                topLeft = Offset(c * cellWidth, r * cellHeight),
+                                size = androidx.compose.ui.geometry.Size(cellWidth, cellHeight)
+                            )
+                        }
+                    }
+
+                    astarCurrentCell?.let { (r, c) ->
+                        drawCircle(Color(0xFF1565C0), radius = cellWidth * 1.2f, center = getCenter(r, c))
+                    }
+                    astarAnalyzingCell?.let { (r, c) ->
+                        if (r in 0 until matrixRows && c in 0 until matrixCols) {
+                            drawCircle(Color(0xFFFFB300), radius = cellWidth, center = getCenter(r, c))
                         }
                     }
                 }
@@ -188,8 +257,15 @@ fun MapCanvasLayer(
                 poiItems.forEach { marker ->
                     val xFraction = (marker.col + 0.5f) / matrixCols.toFloat()
                     val yFraction = (marker.row + 0.5f) / matrixRows.toFloat()
-                    val markerColor = poiTint(marker.typeId)
+                    val clusterColor = clusterAssignments[marker.id]?.let { clusterIndexColor(it) }
+                    val markerColor = if (marker.typeId == "food" && clusterColor != null) clusterColor else poiTint(marker.typeId)
                     val isSelected = marker.id == selectedPoiId
+                    val isDifferent = marker.id in clusterDiffPoiIds
+                    val markerBackground = when {
+                        isSelected -> Color.White
+                        isDifferent -> Color(0xFFFFF3E0)
+                        else -> Color(0xFFF1F9FF)
+                    }
 
                     Box(
                         modifier = Modifier
@@ -199,7 +275,7 @@ fun MapCanvasLayer(
                             )
                             .size(markerBoxSize)
                             .background(
-                                color = if (isSelected) Color.White else Color(0xFFF1F9FF),
+                                color = markerBackground,
                                 shape = RoundedCornerShape(8.dp)
                             )
                             .clickable(enabled = markerClicksEnabled) { onPoiClick(marker) },
@@ -216,6 +292,18 @@ fun MapCanvasLayer(
             }
         }
     }
+}
+
+private fun clusterIndexColor(index: Int): Color {
+    val palette = listOf(
+        Color(0xFFE53935),
+        Color(0xFF1E88E5),
+        Color(0xFF43A047),
+        Color(0xFFFDD835),
+        Color(0xFF8E24AA),
+        Color(0xFF00897B)
+    )
+    return palette[index % palette.size]
 }
 
 @Composable

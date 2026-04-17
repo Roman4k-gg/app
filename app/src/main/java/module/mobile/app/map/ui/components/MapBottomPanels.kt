@@ -104,6 +104,7 @@ fun MapBottomActionSheet(
     scrollState: ScrollState,
     isRouteMode: Boolean,
     onToggleRouteMode: () -> Unit,
+    onOpenClusteringMenu: () -> Unit,
     onOpenGeneticMenu: () -> Unit,
     onOpenAntLandmarks: () -> Unit,
     onOpenAntCowork: () -> Unit,
@@ -137,7 +138,7 @@ fun MapBottomActionSheet(
                 onClick = onToggleRouteMode
             )
             ActionButton(text = "Заведения", onClick = {})
-            ActionButton(text = "Кластеры еды", onClick = {})
+            ActionButton(text = "Кластеры еды", onClick = onOpenClusteringMenu)
             ActionButton(text = "Генетический маршрут еды", onClick = onOpenGeneticMenu)
             ActionButton(text = "Муравьиный тур по роще", onClick = onOpenAntLandmarks)
             ActionButton(text = "Муравьиный подбор коворкинга", onClick = onOpenAntCowork)

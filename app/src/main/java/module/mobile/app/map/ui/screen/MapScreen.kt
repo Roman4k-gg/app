@@ -23,14 +23,19 @@ import androidx.compose.ui.zIndex
 import java.util.Calendar
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import module.mobile.app.algorithms.AntColonyAlgorithm
 import module.mobile.app.algorithms.AntCoworkRequest
 import module.mobile.app.algorithms.AntTourRequest
+import module.mobile.app.algorithms.AstarStep
+import module.mobile.app.algorithms.ClusterMetric
+import module.mobile.app.algorithms.ClusteringAlgorithm
 import module.mobile.app.algorithms.GeneticFoodRequest
 import module.mobile.app.algorithms.GeneticFoodRouteAlgorithm
 import module.mobile.app.algorithms.astar
+import module.mobile.app.algorithms.astarWithTrace
 import module.mobile.app.map.data.loadMatrix
 import module.mobile.app.map.data.loadPois
 import module.mobile.app.map.data.nextPoiId
@@ -45,6 +50,7 @@ import module.mobile.app.map.model.StudentSpaceBonus
 import module.mobile.app.map.ui.components.MapCanvasLayer
 import module.mobile.app.map.ui.components.AntCoworkSettingsDialog
 import module.mobile.app.map.ui.components.AntLandmarksDialog
+import module.mobile.app.map.ui.components.ClusteringSettingsDialog
 import module.mobile.app.map.ui.components.CreatePoiDialog
 import module.mobile.app.map.ui.components.EditorPanel
 import module.mobile.app.map.ui.components.GeneticCartDialog
@@ -101,6 +107,8 @@ fun MapScreen(goToBackMain: () -> Unit) {
     var newPoiComfort by remember { mutableStateOf("0.5") }
 
     var showWalkableCells by remember { mutableStateOf(false) }
+    var ribbonModeEnabled by remember { mutableStateOf(false) }
+    var ribbonCells by remember { mutableStateOf<Set<Pair<Int, Int>>>(emptySet()) }
     var showPoiMarkers by remember { mutableStateOf(true) }
     var showTapCoordinates by remember { mutableStateOf(true) }
     var lastTappedCell by remember { mutableStateOf<Pair<Int, Int>?>(null) }
@@ -112,6 +120,9 @@ fun MapScreen(goToBackMain: () -> Unit) {
     var isRouteMode by remember { mutableStateOf(false) }
     var routeSession by remember { mutableStateOf(0) }
     var isCalculating by remember { mutableStateOf(false) }
+    var isAstarAnimating by remember { mutableStateOf(false) }
+    var astarStepState by remember { mutableStateOf<AstarStep?>(null) }
+    var astarAnimationJob by remember { mutableStateOf<Job?>(null) }
     var isBottomSheetVisible by remember { mutableStateOf(false) }
     var isGeneticMenuVisible by remember { mutableStateOf(false) }
     var showGeneticCartDialog by remember { mutableStateOf(false) }
@@ -126,6 +137,11 @@ fun MapScreen(goToBackMain: () -> Unit) {
 
     var showAntLandmarksDialog by remember { mutableStateOf(false) }
     var showAntCoworkDialog by remember { mutableStateOf(false) }
+    var showClusteringDialog by remember { mutableStateOf(false) }
+    var useEuclideanCluster by remember { mutableStateOf(true) }
+    var useWalkableCluster by remember { mutableStateOf(false) }
+    var clusteringResult by remember { mutableStateOf<module.mobile.app.algorithms.ClusteringResult?>(null) }
+    var activeClusterMetric by remember { mutableStateOf(ClusterMetric.Euclidean) }
     var antSelectedLandmarkIds by remember { mutableStateOf<Set<String>>(emptySet()) }
     var antStudentsInput by remember { mutableStateOf("") }
     var antStudentCount by remember { mutableStateOf(0) }
@@ -158,6 +174,19 @@ fun MapScreen(goToBackMain: () -> Unit) {
     val studentSpacePois by remember(poiItems) {
         derivedStateOf { poiItems.filter { it.typeId == "student_space" && it.spaceBonus != null } }
     }
+    val activeClusterAssignments by remember(clusteringResult, activeClusterMetric) {
+        derivedStateOf {
+            clusteringResult?.assignmentsByMetric?.get(activeClusterMetric).orEmpty()
+        }
+    }
+    val clusterDiffPoiIds by remember(clusteringResult) {
+        derivedStateOf { clusteringResult?.differingPoiIds.orEmpty() }
+    }
+    val activeClusterZones by remember(clusteringResult, activeClusterMetric) {
+        derivedStateOf {
+            clusteringResult?.zonesByMetric?.get(activeClusterMetric).orEmpty()
+        }
+    }
 
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
@@ -172,7 +201,7 @@ fun MapScreen(goToBackMain: () -> Unit) {
         }
     }
 
-    val mapEditMode = editorVisible && editorMode != EditorMode.None
+    val mapEditMode = (editorVisible && editorMode != EditorMode.None) || ribbonModeEnabled
 
     val state = rememberTransformableState { zoomChange, panChange, _ ->
         if (mapEditMode || containerSize == IntSize.Zero) return@rememberTransformableState
@@ -228,6 +257,13 @@ fun MapScreen(goToBackMain: () -> Unit) {
                     onShowPoiMarkersChange = { showPoiMarkers = it },
                     showTapCoordinates = showTapCoordinates,
                     onShowTapCoordinatesChange = { showTapCoordinates = it },
+                    ribbonModeEnabled = ribbonModeEnabled,
+                    onRibbonModeChange = { enabled ->
+                        ribbonModeEnabled = enabled
+                    },
+                    onClearRibbons = {
+                        ribbonCells = emptySet()
+                    },
                     editorVisible = editorVisible,
                     onToggleEditor = {
                         editorVisible = !editorVisible
@@ -249,12 +285,22 @@ fun MapScreen(goToBackMain: () -> Unit) {
                 matrixRows = matrixRows,
                 matrixCols = matrixCols,
                 showWalkableCells = showWalkableCells,
+                ribbonModeEnabled = ribbonModeEnabled,
+                ribbonCells = ribbonCells,
                 showPoiMarkers = showPoiMarkers,
                 poiItems = poiItems,
                 selectedPoiId = selectedPoi?.id,
                 startPoint = startPoint,
                 endPoint = endPoint,
                 path = path,
+                clusterAssignments = activeClusterAssignments,
+                clusterZoneCells = activeClusterZones,
+                clusterDiffPoiIds = clusterDiffPoiIds,
+                astarOpenSet = astarStepState?.openSet ?: emptySet(),
+                astarClosedSet = astarStepState?.closedSet ?: emptySet(),
+                astarCurrentCell = astarStepState?.current,
+                astarAnalyzingCell = astarStepState?.analyzing,
+                isAstarAnimating = isAstarAnimating,
                 onPoiClick = { poi ->
                     if (isRouteMode || isSelectingGeneticStart || isGeneticRunning || antPendingAction != AntPendingAction.None || isAntRunning) return@MapCanvasLayer
                     selectedPoi = poi
@@ -293,6 +339,11 @@ fun MapScreen(goToBackMain: () -> Unit) {
 
                         EditorMode.None -> {
                             if (isCalculating) return@MapCanvasLayer
+
+                            if (ribbonModeEnabled && !isRouteMode && !isGeneticRunning && !isAntRunning && antPendingAction == AntPendingAction.None && !isSelectingGeneticStart) {
+                                ribbonCells = ribbonCells + Pair(clickedRow, clickedCol)
+                                return@MapCanvasLayer
+                            }
 
                             if (antPendingAction != AntPendingAction.None) {
                                 if (currentGrid[clickedRow][clickedCol] != 1) {
@@ -506,11 +557,32 @@ fun MapScreen(goToBackMain: () -> Unit) {
                                 val goal = endPoint ?: return@MapCanvasLayer
                                 val sessionAtLaunch = routeSession
 
+                                val effectiveGrid = Array(currentGrid.size) { row -> currentGrid[row].clone() }
+                                ribbonCells.forEach { (r, c) ->
+                                    if (r in 0 until matrixRows && c in 0 until matrixCols) {
+                                        effectiveGrid[r][c] = 0
+                                    }
+                                }
+
                                 coroutineScope.launch(Dispatchers.Default) {
-                                    val calculatedPath = astar(currentGrid, start, goal)
+                                    val traced = astarWithTrace(effectiveGrid, start, goal)
                                     withContext(Dispatchers.Main) {
                                         if (isRouteMode && routeSession == sessionAtLaunch) {
-                                            path = calculatedPath
+                                            astarAnimationJob?.cancel()
+                                            astarAnimationJob = launch {
+                                                isAstarAnimating = true
+                                                for (step in traced.steps) {
+                                                    if (!isRouteMode || routeSession != sessionAtLaunch) break
+                                                    astarStepState = step
+                                                    delay(18)
+                                                }
+                                                path = traced.path
+                                                if (traced.path == null) {
+                                                    Toast.makeText(context, "Маршрут не существует", Toast.LENGTH_SHORT).show()
+                                                }
+                                                isAstarAnimating = false
+                                                astarStepState = null
+                                            }
                                         }
                                         isCalculating = false
                                     }
@@ -529,6 +601,13 @@ fun MapScreen(goToBackMain: () -> Unit) {
                     }
                 },
                 onDrawStart = { row, col ->
+                    if (ribbonModeEnabled && editorMode == EditorMode.None) {
+                        ribbonCells = ribbonCells + Pair(row, col)
+                        lastTappedCell = Pair(row, col)
+                        lastTappedValue = 0
+                        return@MapCanvasLayer
+                    }
+
                     val currentGrid = grid ?: return@MapCanvasLayer
                     val newValue = if (editorMode == EditorMode.DrawOne) 1 else 0
                     if (currentGrid[row][col] != newValue) {
@@ -539,6 +618,14 @@ fun MapScreen(goToBackMain: () -> Unit) {
                     lastTappedValue = newValue
                 },
                 onDrawMove = { from, to ->
+                    if (ribbonModeEnabled && editorMode == EditorMode.None) {
+                        val lineCells = cellsOnLine(from, to)
+                        ribbonCells = ribbonCells + lineCells.toSet()
+                        lastTappedCell = to
+                        lastTappedValue = 0
+                        return@MapCanvasLayer
+                    }
+
                     val currentGrid = grid ?: return@MapCanvasLayer
                     val newValue = if (editorMode == EditorMode.DrawOne) 1 else 0
                     val lineCells = cellsOnLine(from, to)
@@ -556,6 +643,8 @@ fun MapScreen(goToBackMain: () -> Unit) {
                     lastTappedValue = newValue
                 },
                 onDrawEnd = {
+                    if (ribbonModeEnabled && editorMode == EditorMode.None) return@MapCanvasLayer
+
                     val currentGrid = grid ?: return@MapCanvasLayer
                     coroutineScope.launch(Dispatchers.IO) {
                         saveMatrix(context, currentGrid)
@@ -613,6 +702,36 @@ fun MapScreen(goToBackMain: () -> Unit) {
                 },
                 modifier = Modifier.align(Alignment.BottomCenter)
             )
+
+            if (isRouteMode || isAstarAnimating) {
+                Surface(
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(top = 12.dp)
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    color = Color.White,
+                    border = BorderStroke(2.dp, Color(0xFF0072BC)),
+                    shadowElevation = 8.dp
+                ) {
+                    Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
+                        val statusText = when {
+                            startPoint == null -> "A*: выберите стартовую точку"
+                            endPoint == null -> "A*: выберите конечную точку"
+                            isAstarAnimating -> "A*: идет итерационная анимация"
+                            isCalculating -> "A*: расчет маршрута"
+                            else -> "A*: маршрут построен"
+                        }
+                        Text(text = statusText, style = MaterialTheme.typography.bodyMedium)
+                        Text(
+                            text = "Ленты: ${ribbonCells.size} (режим лент: ${if (ribbonModeEnabled) "вкл" else "выкл"})",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.Gray
+                        )
+                    }
+                }
+            }
 
             if (isSelectingGeneticStart || isGeneticRunning) {
                 Surface(
@@ -679,6 +798,63 @@ fun MapScreen(goToBackMain: () -> Unit) {
                 }
             }
 
+            clusteringResult?.let { clusterState ->
+                val topPadding = when {
+                    antPendingAction != AntPendingAction.None || isAntRunning -> 160.dp
+                    isSelectingGeneticStart || isGeneticRunning -> 86.dp
+                    isRouteMode || isAstarAnimating -> 86.dp
+                    else -> 12.dp
+                }
+                Surface(
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(top = topPadding)
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    color = Color.White,
+                    border = BorderStroke(2.dp, Color(0xFF0072BC)),
+                    shadowElevation = 8.dp
+                ) {
+                    Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
+                        val metricLabel = when (activeClusterMetric) {
+                            ClusterMetric.Euclidean -> "Евклидово"
+                            ClusterMetric.WalkableAStar -> "Пешеходное (A*)"
+                        }
+                        val selectedK = clusterState.selectedKByMetric[activeClusterMetric]
+                        Text(
+                            text = "Кластеры: метрика $metricLabel, k=${selectedK ?: "-"}",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        if (clusterState.metrics.size > 1) {
+                            Text(
+                                text = "Точек с разными кластерами между метриками: ${clusterState.differingPoiIds.size}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color.Gray
+                            )
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                if (ClusterMetric.Euclidean in clusterState.metrics) {
+                                    TextButton(onClick = { activeClusterMetric = ClusterMetric.Euclidean }) {
+                                        Text(
+                                            text = "Евклидово",
+                                            color = if (activeClusterMetric == ClusterMetric.Euclidean) Color(0xFF0072BC) else Color.Gray
+                                        )
+                                    }
+                                }
+                                if (ClusterMetric.WalkableAStar in clusterState.metrics) {
+                                    TextButton(onClick = { activeClusterMetric = ClusterMetric.WalkableAStar }) {
+                                        Text(
+                                            text = "Пешеходное(A*)",
+                                            color = if (activeClusterMetric == ClusterMetric.WalkableAStar) Color(0xFF0072BC) else Color.Gray
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             selectedPoi?.let { poi ->
                 PoiContextCard(
                     poi = poi,
@@ -710,6 +886,9 @@ fun MapScreen(goToBackMain: () -> Unit) {
                     scrollState = bottomMenuScrollState,
                     isRouteMode = isRouteMode,
                     onToggleRouteMode = {
+                        astarAnimationJob?.cancel()
+                        isAstarAnimating = false
+                        astarStepState = null
                         geneticJob?.cancel()
                         isGeneticRunning = false
                         isSelectingGeneticStart = false
@@ -726,7 +905,14 @@ fun MapScreen(goToBackMain: () -> Unit) {
                         selectedPoi = null
                         isBottomSheetVisible = false
                     },
+                    onOpenClusteringMenu = {
+                        isBottomSheetVisible = false
+                        showClusteringDialog = true
+                    },
                     onOpenGeneticMenu = {
+                        astarAnimationJob?.cancel()
+                        isAstarAnimating = false
+                        astarStepState = null
                         antJob?.cancel()
                         isAntRunning = false
                         antPendingAction = AntPendingAction.None
@@ -741,6 +927,9 @@ fun MapScreen(goToBackMain: () -> Unit) {
                         isGeneticMenuVisible = true
                     },
                     onOpenAntLandmarks = {
+                        astarAnimationJob?.cancel()
+                        isAstarAnimating = false
+                        astarStepState = null
                         geneticJob?.cancel()
                         isGeneticRunning = false
                         isSelectingGeneticStart = false
@@ -756,6 +945,9 @@ fun MapScreen(goToBackMain: () -> Unit) {
                         }
                     },
                     onOpenAntCowork = {
+                        astarAnimationJob?.cancel()
+                        isAstarAnimating = false
+                        astarStepState = null
                         geneticJob?.cancel()
                         isGeneticRunning = false
                         isSelectingGeneticStart = false
@@ -807,6 +999,9 @@ fun MapScreen(goToBackMain: () -> Unit) {
                     },
                     onClear = { geneticCart = emptyMap() },
                     onBuy = {
+                        astarAnimationJob?.cancel()
+                        isAstarAnimating = false
+                        astarStepState = null
                         showGeneticCartDialog = false
                         isGeneticMenuVisible = false
                         isBottomSheetVisible = false
@@ -878,6 +1073,63 @@ fun MapScreen(goToBackMain: () -> Unit) {
                         Toast.makeText(context, "Выберите стартовую точку на карте.", Toast.LENGTH_SHORT).show()
                     },
                     onDismiss = { showAntCoworkDialog = false }
+                )
+            }
+
+            if (showClusteringDialog) {
+                ClusteringSettingsDialog(
+                    useEuclidean = useEuclideanCluster,
+                    onUseEuclideanChange = { useEuclideanCluster = it },
+                    useWalkable = useWalkableCluster,
+                    onUseWalkableChange = { useWalkableCluster = it },
+                    onRun = {
+                        val currentGrid = grid
+                        if (currentGrid == null) {
+                            Toast.makeText(context, "Матрица карты еще не загружена.", Toast.LENGTH_SHORT).show()
+                            return@ClusteringSettingsDialog
+                        }
+                        val selectedMetrics = buildSet {
+                            if (useEuclideanCluster) add(ClusterMetric.Euclidean)
+                            if (useWalkableCluster) add(ClusterMetric.WalkableAStar)
+                        }
+                        if (selectedMetrics.isEmpty()) {
+                            Toast.makeText(context, "Выберите хотя бы одну метрику.", Toast.LENGTH_SHORT).show()
+                            return@ClusteringSettingsDialog
+                        }
+                        val gridSnapshot = Array(currentGrid.size) { row -> currentGrid[row].clone() }
+                        val poiSnapshot = poiItems.toList()
+
+                        showClusteringDialog = false
+                        isCalculating = true
+                        coroutineScope.launch(Dispatchers.Default) {
+                            val result = ClusteringAlgorithm().clusterFoodPois(
+                                grid = gridSnapshot,
+                                pois = poiSnapshot,
+                                metrics = selectedMetrics
+                            )
+                            withContext(Dispatchers.Main) {
+                                isCalculating = false
+                                clusteringResult = result
+                                activeClusterMetric = if (ClusterMetric.Euclidean in result.metrics) {
+                                    ClusterMetric.Euclidean
+                                } else {
+                                    ClusterMetric.WalkableAStar
+                                }
+                                if (result.assignmentsByMetric.isEmpty()) {
+                                    Toast.makeText(context, "Не найдено точек заведений (food).", Toast.LENGTH_SHORT).show()
+                                } else {
+                                    val diffCount = result.differingPoiIds.size
+                                    val runInfo = if (result.metrics.size > 1) {
+                                        "Готово. Различающихся точек: $diffCount"
+                                    } else {
+                                        "Готово. Кластеры построены."
+                                    }
+                                    Toast.makeText(context, runInfo, Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        }
+                    },
+                    onDismiss = { showClusteringDialog = false }
                 )
             }
 
