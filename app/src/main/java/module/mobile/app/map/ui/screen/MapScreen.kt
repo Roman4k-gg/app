@@ -1,6 +1,17 @@
 package module.mobile.app.map.ui.screen
 
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import android.location.Location
+import android.location.LocationManager
+import android.os.CancellationSignal
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -21,13 +32,16 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import androidx.core.content.ContextCompat
 import java.util.Calendar
 import java.util.Locale
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import module.mobile.app.R
 import module.mobile.app.algorithms.AntColonyAlgorithm
 import module.mobile.app.algorithms.AntCoworkRequest
@@ -65,6 +79,7 @@ import module.mobile.app.map.ui.components.PoiContextCard
 import module.mobile.app.map.ui.components.PoiListDialog
 import module.mobile.app.map.ui.components.TapCoordinatesBadge
 import module.mobile.app.map.ui.components.ToolsMenuCard
+import kotlin.coroutines.resume
 
 @Composable
 fun MapScreen(
@@ -82,6 +97,7 @@ fun MapScreen(
     val density = LocalDensity.current
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
+    var locationPermissionRequestPending by remember { mutableStateOf(false) }
 
     val imgSizeDp = remember(density) {
         DpSize(
@@ -161,6 +177,275 @@ fun MapScreen(
     var antBestScore by remember { mutableStateOf<Double?>(null) }
     var antStatusLine by remember { mutableStateOf("") }
 
+    val trySetStartFromLocation: () -> Unit = {
+        val currentGrid = grid
+        if (currentGrid == null) {
+            Toast.makeText(context, context.getString(R.string.map_toast_matrix_not_loaded), Toast.LENGTH_SHORT).show()
+        } else {
+            coroutineScope.launch {
+                val location = getCurrentOrLastKnownLocation(context)
+                if (location == null) {
+                    Toast.makeText(context, context.getString(R.string.map_toast_location_unavailable), Toast.LENGTH_SHORT).show()
+                    return@launch
+                }
+
+                val rawCell = projectLocationToCell(location.latitude, location.longitude, matrixRows, matrixCols)
+                val walkableCell = findNearestWalkableCell(currentGrid, rawCell)
+                if (walkableCell == null) {
+                    Toast.makeText(context, context.getString(R.string.map_toast_no_walkable_near_location), Toast.LENGTH_SHORT).show()
+                    return@launch
+                }
+
+                val (row, col) = walkableCell
+                lastTappedCell = walkableCell
+                lastTappedValue = currentGrid[row][col]
+
+                if (antPendingAction != AntPendingAction.None) {
+                    val start = walkableCell
+                    val action = antPendingAction
+                    antPendingAction = AntPendingAction.None
+                    startPoint = start
+                    endPoint = null
+                    path = null
+                    selectedPoi = null
+
+                    val gridSnapshot = Array(currentGrid.size) { r -> currentGrid[r].clone() }
+                    antJob?.cancel()
+                    antJob = coroutineScope.launch(Dispatchers.Default) {
+                        val algorithm = AntColonyAlgorithm()
+
+                        when (action) {
+                            AntPendingAction.Landmarks -> {
+                                val landmarks = poiItems.filter { it.typeId == "landmark" && it.id in antSelectedLandmarkIds }
+                                if (landmarks.isEmpty()) {
+                                    withContext(Dispatchers.Main) {
+                                        Toast.makeText(
+                                            context,
+                                            context.getString(R.string.map_toast_select_at_least_one_landmark),
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                    return@launch
+                                }
+
+                                val request = AntTourRequest(
+                                    grid = gridSnapshot,
+                                    startCell = start,
+                                    landmarks = landmarks
+                                )
+
+                                withContext(Dispatchers.Main) {
+                                    isAntRunning = true
+                                    isCalculating = true
+                                    antIteration = 0
+                                    antTotalIterations = request.config.iterations
+                                    antBestScore = null
+                                    antStatusLine = context.getString(
+                                        R.string.map_ant_status_tour_points,
+                                        landmarks.size
+                                    )
+                                }
+
+                                try {
+                                    algorithm.runLandmarkTour(request).collect { progress ->
+                                        withContext(Dispatchers.Main) {
+                                            antIteration = progress.iteration
+                                            antTotalIterations = progress.totalIterations
+                                            antBestScore = progress.bestScore
+                                            antStatusLine = context.getString(
+                                                R.string.map_ant_status_best_route_points,
+                                                progress.bestVisitOrder.size
+                                            )
+                                            if (progress.bestPath.isNotEmpty()) {
+                                                path = progress.bestPath
+                                                endPoint = progress.bestPath.last()
+                                            }
+                                        }
+                                    }
+                                } finally {
+                                    withContext(Dispatchers.Main) {
+                                        isAntRunning = false
+                                        isCalculating = false
+                                        Toast.makeText(
+                                            context,
+                                            context.getString(R.string.map_toast_ant_tour_finished),
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                }
+                            }
+
+                            AntPendingAction.Cowork -> {
+                                val spaces = poiItems.filter { it.typeId == "student_space" && it.spaceBonus != null }
+                                val request = AntCoworkRequest(
+                                    grid = gridSnapshot,
+                                    startCell = start,
+                                    studentCount = antStudentCount,
+                                    spaces = spaces
+                                )
+
+                                withContext(Dispatchers.Main) {
+                                    isAntRunning = true
+                                    isCalculating = true
+                                    antIteration = 0
+                                    antTotalIterations = request.config.iterations
+                                    antBestScore = null
+                                    antStatusLine = context.getString(
+                                        R.string.map_ant_status_students_in_task,
+                                        request.studentCount
+                                    )
+                                }
+
+                                try {
+                                    algorithm.runCoworkOptimization(request).collect { progress ->
+                                        withContext(Dispatchers.Main) {
+                                            antIteration = progress.iteration
+                                            antTotalIterations = progress.totalIterations
+                                            antBestScore = progress.bestScore
+                                            val primaryName = progress.primarySpace?.name ?: context.getString(R.string.common_none)
+                                            val assigned = progress.allocation.sumOf { it.assignedStudents }
+                                            antStatusLine = context.getString(
+                                                R.string.map_ant_status_primary_cowork,
+                                                primaryName,
+                                                assigned
+                                            )
+                                            if (progress.primaryPath.isNotEmpty()) {
+                                                path = progress.primaryPath
+                                                endPoint = progress.primaryPath.last()
+                                            }
+                                        }
+                                    }
+                                } finally {
+                                    withContext(Dispatchers.Main) {
+                                        isAntRunning = false
+                                        isCalculating = false
+                                        Toast.makeText(
+                                            context,
+                                            context.getString(R.string.map_toast_cowork_finished),
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                }
+                            }
+
+                            AntPendingAction.None -> Unit
+                        }
+                    }
+
+                    Toast.makeText(
+                        context,
+                        context.getString(R.string.map_toast_start_set_from_location, walkableCell.first, walkableCell.second),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    return@launch
+                }
+
+                if (isSelectingGeneticStart) {
+                    val start = walkableCell
+                    isSelectingGeneticStart = false
+                    startPoint = start
+                    endPoint = null
+                    path = null
+                    selectedPoi = null
+
+                    val now = Calendar.getInstance()
+                    val startMinuteOfDay = now.get(Calendar.HOUR_OF_DAY) * 60 + now.get(Calendar.MINUTE)
+                    val gridSnapshot = Array(currentGrid.size) { r -> currentGrid[r].clone() }
+                    val poisSnapshot = poiItems.toList()
+                    val cartSnapshot = geneticCart.toMap()
+
+                    geneticJob?.cancel()
+                    geneticJob = coroutineScope.launch(Dispatchers.Default) {
+                        val algorithm = GeneticFoodRouteAlgorithm()
+                        val request = GeneticFoodRequest(
+                            grid = gridSnapshot,
+                            startCell = start,
+                            cart = cartSnapshot,
+                            pois = poisSnapshot,
+                            startMinuteOfDay = startMinuteOfDay
+                        )
+
+                        withContext(Dispatchers.Main) {
+                            isGeneticRunning = true
+                            isCalculating = true
+                            geneticIteration = 0
+                            geneticTotalIterations = request.config.generations
+                            geneticBestScore = null
+                            geneticMissingItemsCount = cartSnapshot.values.sum()
+                        }
+
+                        try {
+                            algorithm.run(request).collect { progress ->
+                                withContext(Dispatchers.Main) {
+                                    geneticIteration = progress.iteration
+                                    geneticTotalIterations = progress.totalIterations
+                                    geneticBestScore = progress.best.score
+                                    geneticMissingItemsCount = progress.best.missingItems.values.sum()
+                                    if (progress.best.fullPath.isNotEmpty()) {
+                                        path = progress.best.fullPath
+                                        endPoint = progress.best.fullPath.last()
+                                    }
+                                }
+                            }
+                        } finally {
+                            withContext(Dispatchers.Main) {
+                                isGeneticRunning = false
+                                isCalculating = false
+                                Toast.makeText(
+                                    context,
+                                    context.getString(
+                                        R.string.map_toast_genetic_finished_missing,
+                                        geneticMissingItemsCount
+                                    ),
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        }
+                    }
+
+                    Toast.makeText(
+                        context,
+                        context.getString(R.string.map_toast_start_set_from_location, walkableCell.first, walkableCell.second),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    return@launch
+                }
+
+                if (isRouteMode) {
+                    if (startPoint == null || endPoint != null) {
+                        startPoint = walkableCell
+                        endPoint = null
+                        path = null
+                    }
+                } else {
+                    startPoint = walkableCell
+                    endPoint = null
+                    path = null
+                    selectedPoi = null
+                }
+
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.map_toast_start_set_from_location, walkableCell.first, walkableCell.second),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
+
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { result ->
+        val granted = result[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
+            result[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+        if (granted) {
+            trySetStartFromLocation()
+        } else {
+            Toast.makeText(context, context.getString(R.string.map_toast_location_permission_denied), Toast.LENGTH_SHORT).show()
+        }
+        locationPermissionRequestPending = false
+    }
+
     val bottomMenuScrollState = rememberScrollState()
     val geneticMenuItems by remember(poiItems) {
         derivedStateOf {
@@ -207,6 +492,16 @@ fun MapScreen(
                 gridVersion++
             }
         }
+    }
+
+    LaunchedEffect(locationPermissionRequestPending) {
+        if (!locationPermissionRequestPending) return@LaunchedEffect
+        locationPermissionLauncher.launch(
+            arrayOf(
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            )
+        )
     }
 
     LaunchedEffect(pendingRatingUpdate, poiItems) {
@@ -269,6 +564,21 @@ fun MapScreen(
 
     Column(modifier = Modifier.fillMaxSize()) {
         MapTopBar(
+            onSetStartFromLocation = {
+                val hasPermission = ContextCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                ) == PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                ) == PackageManager.PERMISSION_GRANTED
+
+                if (hasPermission) {
+                    trySetStartFromLocation()
+                } else {
+                    locationPermissionRequestPending = true
+                }
+            },
             onToggleTools = { toolsMenuExpanded = !toolsMenuExpanded },
             onBack = goToBackMain
         )
@@ -282,7 +592,14 @@ fun MapScreen(
                 .onGloballyPositioned { containerSize = it.size }
                 .clipToBounds()
         ) {
-            if (toolsMenuExpanded) {
+            androidx.compose.animation.AnimatedVisibility(
+                visible = toolsMenuExpanded,
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .zIndex(3f),
+                enter = fadeIn(),
+                exit = fadeOut()
+            ) {
                 ToolsMenuCard(
                     showWalkableCells = showWalkableCells,
                     onShowWalkableCellsChange = { showWalkableCells = it },
@@ -950,18 +1267,25 @@ fun MapScreen(
                 }
             }
 
-            selectedPoi?.let { poi ->
-                PoiContextCard(
-                    poi = poi,
-                    onStartRatingDraw = {
-                        onStartRatingDraw(poi.id)
-                    },
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .zIndex(2f)
-                        .fillMaxWidth()
-                        .padding(start = 25.dp, end = 25.dp, bottom = 20.dp)
-                )
+            androidx.compose.animation.AnimatedVisibility(
+                visible = selectedPoi != null,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .zIndex(2f),
+                enter = fadeIn(),
+                exit = fadeOut()
+            ) {
+                selectedPoi?.let { poi ->
+                    PoiContextCard(
+                        poi = poi,
+                        onStartRatingDraw = {
+                            onStartRatingDraw(poi.id)
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 25.dp, end = 25.dp, bottom = 20.dp)
+                    )
+                }
             }
 
             if (isBottomSheetVisible || isGeneticMenuVisible) {
@@ -979,7 +1303,14 @@ fun MapScreen(
                 )
             }
 
-            if (isBottomSheetVisible) {
+            androidx.compose.animation.AnimatedVisibility(
+                visible = isBottomSheetVisible,
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .zIndex(2f),
+                enter = fadeIn(),
+                exit = fadeOut()
+            ) {
                 MapBottomActionSheet(
                     scrollState = bottomMenuScrollState,
                     isRouteMode = isRouteMode,
@@ -1061,7 +1392,7 @@ fun MapScreen(
                         isBottomSheetVisible = false
                         onOpenDecisionTree()
                     },
-                    modifier = Modifier.align(Alignment.BottomStart)
+                    modifier = Modifier
                 )
             }
 
@@ -1367,3 +1698,123 @@ private enum class AntPendingAction {
     Landmarks,
     Cowork
 }
+
+private const val MAP_LAT_TOP = 56.4719
+private const val MAP_LAT_BOTTOM = 56.4658
+private const val MAP_LON_LEFT = 84.9389
+private const val MAP_LON_RIGHT = 84.9569
+
+private fun projectLocationToCell(
+    latitude: Double,
+    longitude: Double,
+    rows: Int,
+    cols: Int
+): Pair<Int, Int> {
+    val rowFloat = ((MAP_LAT_TOP - latitude) / (MAP_LAT_TOP - MAP_LAT_BOTTOM)) * (rows - 1)
+    val colFloat = ((longitude - MAP_LON_LEFT) / (MAP_LON_RIGHT - MAP_LON_LEFT)) * (cols - 1)
+
+    val row = rowFloat.toInt().coerceIn(0, rows - 1)
+    val col = colFloat.toInt().coerceIn(0, cols - 1)
+    return row to col
+}
+
+private fun findNearestWalkableCell(grid: Array<IntArray>, start: Pair<Int, Int>): Pair<Int, Int>? {
+    val rows = grid.size
+    if (rows == 0) return null
+    val cols = grid.first().size
+    val (startRow, startCol) = start
+    if (startRow !in 0 until rows || startCol !in 0 until cols) return null
+    if (grid[startRow][startCol] == 1) return start
+
+    val visited = Array(rows) { BooleanArray(cols) }
+    val queue = ArrayDeque<Pair<Int, Int>>()
+    queue.add(start)
+    visited[startRow][startCol] = true
+
+    val directions = arrayOf(
+        -1 to 0,
+        1 to 0,
+        0 to -1,
+        0 to 1
+    )
+
+    while (queue.isNotEmpty()) {
+        val (row, col) = queue.removeFirst()
+        for ((dr, dc) in directions) {
+            val nr = row + dr
+            val nc = col + dc
+            if (nr !in 0 until rows || nc !in 0 until cols) continue
+            if (visited[nr][nc]) continue
+
+            if (grid[nr][nc] == 1) return nr to nc
+
+            visited[nr][nc] = true
+            queue.add(nr to nc)
+        }
+    }
+
+    return null
+}
+
+private suspend fun getCurrentOrLastKnownLocation(context: Context): Location? = withContext(Dispatchers.IO) {
+    val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as? LocationManager ?: return@withContext null
+
+    val currentProviders = listOf(
+        LocationManager.GPS_PROVIDER,
+        LocationManager.NETWORK_PROVIDER
+    )
+
+    for (provider in currentProviders) {
+        val current = getCurrentLocationOnce(context, locationManager, provider, timeoutMs = 2500L)
+        if (current != null) return@withContext current
+    }
+
+    // Fallback to cached values only when fresh fix is unavailable.
+    getLastKnownLocation(context)
+}
+
+private suspend fun getCurrentLocationOnce(
+    context: Context,
+    locationManager: LocationManager,
+    provider: String,
+    timeoutMs: Long
+): Location? = withTimeoutOrNull(timeoutMs) {
+    suspendCancellableCoroutine { continuation ->
+        val cancellationSignal = CancellationSignal()
+        continuation.invokeOnCancellation { cancellationSignal.cancel() }
+
+        try {
+            locationManager.getCurrentLocation(
+                provider,
+                cancellationSignal,
+                ContextCompat.getMainExecutor(context)
+            ) { location ->
+                if (continuation.isActive) {
+                    continuation.resume(location)
+                }
+            }
+        } catch (_: SecurityException) {
+            if (continuation.isActive) continuation.resume(null)
+        } catch (_: IllegalArgumentException) {
+            if (continuation.isActive) continuation.resume(null)
+        }
+    }
+}
+
+private suspend fun getLastKnownLocation(context: Context): Location? = withContext(Dispatchers.IO) {
+    val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as? LocationManager ?: return@withContext null
+
+    val providers = listOf(
+        LocationManager.GPS_PROVIDER,
+        LocationManager.NETWORK_PROVIDER,
+        LocationManager.PASSIVE_PROVIDER
+    )
+
+    providers
+        .asSequence()
+        .mapNotNull { provider ->
+            runCatching { locationManager.getLastKnownLocation(provider) }.getOrNull()
+        }
+        .maxByOrNull { it.time }
+}
+
