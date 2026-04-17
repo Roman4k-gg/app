@@ -10,11 +10,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,8 +39,8 @@ fun MapTopBar(onToggleTools: () -> Unit, onBack: () -> Unit) {
         )
         Box(
             modifier = Modifier
-                .align(Alignment.TopStart)
-                .padding(start = 86.dp, top = 45.dp)
+                .align(Alignment.TopEnd)
+                .padding(end = 70.dp, top = 45.dp)
         ) {
             Button(
                 onClick = onToggleTools,
@@ -56,11 +53,10 @@ fun MapTopBar(onToggleTools: () -> Unit, onBack: () -> Unit) {
                 modifier = Modifier.size(45.dp),
                 contentPadding = PaddingValues(0.dp)
             ) {
-                Icon(
-                    imageVector = Icons.Filled.Settings,
-                    contentDescription = "Инструменты",
-                    tint = Color(0xFF0072BC),
-                    modifier = Modifier.size(24.dp)
+                Image(
+                    painter = painterResource(id = R.drawable.settings_icon),
+                    contentDescription = null,
+                    modifier = Modifier.size(30.dp)
                 )
             }
         }

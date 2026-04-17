@@ -1,6 +1,7 @@
 package module.mobile.app.map.ui.components
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -22,6 +23,7 @@ import androidx.compose.foundation.ScrollState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
@@ -92,9 +94,16 @@ fun MapBottomActionBar(onToggleSheet: () -> Unit, modifier: Modifier = Modifier)
                 onClick = onToggleSheet,
                 modifier = Modifier.size(50.dp),
                 shape = RoundedCornerShape(10.dp),
+                contentPadding = PaddingValues(0.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5398F9)),
                 border = BorderStroke(2.dp, Color(0xFF0072BC))
-            ) {}
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.menu_icon),
+                    contentDescription = null,
+                    modifier = Modifier.size(30.dp)
+                )
+            }
         }
     }
 }
