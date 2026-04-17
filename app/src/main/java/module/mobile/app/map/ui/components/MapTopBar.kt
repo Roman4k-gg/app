@@ -40,7 +40,7 @@ fun MapTopBar(onToggleTools: () -> Unit, onBack: () -> Unit) {
         Box(
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .padding(end = 70.dp, top = 45.dp)
+                .padding(end = 72.dp, top = 45.dp)
         ) {
             Button(
                 onClick = onToggleTools,
