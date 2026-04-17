@@ -18,12 +18,14 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
@@ -38,11 +40,13 @@ fun PoiContextCard(
     modifier: Modifier = Modifier
 ) {
     val scrollState = rememberScrollState()
+    val colorScheme = MaterialTheme.colorScheme
+
     Surface(
         modifier = modifier,
-        color = Color(0xFFF9F9F9),
+        color = colorScheme.surface,
         shape = RoundedCornerShape(26.dp),
-        border = BorderStroke(3.dp, Color(0xFF0072BC)),
+        border = BorderStroke(3.dp, colorScheme.outline),
         shadowElevation = 8.dp
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
@@ -56,7 +60,7 @@ fun PoiContextCard(
                 Box(
                     modifier = Modifier
                         .size(38.dp)
-                        .background(Color(0xFFEAF4FF), RoundedCornerShape(12.dp)),
+                        .background(colorScheme.secondaryContainer, RoundedCornerShape(12.dp)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -71,11 +75,11 @@ fun PoiContextCard(
                     fontFamily = FontFamily(Font(R.font.manropebold)),
                     fontSize = 28.sp,
                     lineHeight = 30.sp,
-                    color = Color.Black
+                    color = colorScheme.onSurface
                 )
             }
 
-            HorizontalDivider(thickness = 2.dp, color = Color(0xFF0072BC))
+            HorizontalDivider(thickness = 2.dp, color = colorScheme.outline)
 
             Column(
                 modifier = Modifier
@@ -86,40 +90,37 @@ fun PoiContextCard(
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 InfoRow(
-                    label = "Оценка",
-                    value = poi.rating?.toString() ?: "Не оценено"
+                    label = stringResource(R.string.poi_rating_label),
+                    value = poi.rating?.toString() ?: stringResource(R.string.poi_not_rated)
                 )
                 Button(
                     onClick = onStartRatingDraw,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF5398F9),
-                        contentColor = Color.White
-                    ),
+                    colors = ButtonDefaults.buttonColors(containerColor = colorScheme.primary),
                     shape = RoundedCornerShape(10.dp)
                 ) {
-                    Text(text = "Поставить оценку")
+                    Text(text = stringResource(R.string.poi_rate_button))
                 }
 
                 poi.foodBonus?.let { food ->
-                    InfoRow(label = "Время работы", value = "${food.open} - ${food.close}")
+                    InfoRow(label = stringResource(R.string.poi_working_hours), value = "${food.open} - ${food.close}")
                     if (food.menu.isNotEmpty()) {
-                        SectionTitle("Меню")
+                        SectionTitle(stringResource(R.string.poi_menu_title))
                         food.menu.forEach { item ->
-                            Text(text = "- $item", fontSize = 15.sp, color = Color.Black)
+                            Text(text = "- $item", fontSize = 15.sp, color = colorScheme.onSurface)
                         }
                     }
                 }
 
                 poi.spaceBonus?.let { space ->
-                    InfoRow(label = "Вместимость", value = space.capacity.toString())
-                    InfoRow(label = "Удобство", value = space.comfort.toString())
+                    InfoRow(label = stringResource(R.string.poi_capacity_info), value = space.capacity.toString())
+                    InfoRow(label = stringResource(R.string.poi_comfort_info), value = space.comfort.toString())
                 }
 
                 if (poi.foodBonus == null && poi.spaceBonus == null) {
                     Text(
-                        text = "Дополнительные данные для этой точки пока не заполнены.",
+                        text = stringResource(R.string.poi_extra_data_missing),
                         fontSize = 15.sp,
-                        color = Color.DarkGray
+                        color = colorScheme.onSurfaceVariant
                     )
                 }
 
@@ -131,19 +132,23 @@ fun PoiContextCard(
 
 @Composable
 private fun SectionTitle(text: String) {
+    val colorScheme = MaterialTheme.colorScheme
+
     Text(
         text = text,
         fontFamily = FontFamily(Font(R.font.manropebold)),
         fontSize = 18.sp,
-        color = Color(0xFF0B4B8F)
+        color = colorScheme.primary
     )
 }
 
 @Composable
 private fun InfoRow(label: String, value: String) {
+    val colorScheme = MaterialTheme.colorScheme
+
     Text(
         text = "$label: $value",
         fontSize = 16.sp,
-        color = Color.Black
+        color = colorScheme.onSurface
     )
 }

@@ -24,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
@@ -59,7 +60,7 @@ fun GeneticFoodMenuSheet(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Выберите блюда",
+                    text = stringResource(R.string.genetic_choose_dishes),
                     fontFamily = FontFamily(Font(R.font.manropebold)),
                     fontSize = 22.sp
                 )
@@ -69,7 +70,7 @@ fun GeneticFoodMenuSheet(
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5398F9)),
                     border = BorderStroke(2.dp, Color(0xFF0072BC))
                 ) {
-                    Text(text = "Корзина ($cartCount)")
+                    Text(text = stringResource(R.string.genetic_cart_button, cartCount))
                 }
             }
 
@@ -127,7 +128,7 @@ fun GeneticCartDialog(
                     .padding(16.dp)
             ) {
                 Text(
-                    text = "Корзина",
+                    text = stringResource(R.string.genetic_cart_title),
                     fontFamily = FontFamily(Font(R.font.manropebold)),
                     fontSize = 20.sp
                 )
@@ -136,7 +137,7 @@ fun GeneticCartDialog(
 
                 if (cartItems.isEmpty()) {
                     Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                        Text(text = "Корзина пуста", color = Color.Gray)
+                        Text(text = stringResource(R.string.genetic_cart_empty), color = Color.Gray)
                     }
                 } else {
                     LazyColumn(
@@ -190,11 +191,11 @@ fun GeneticCartDialog(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     TextButton(onClick = onClear, enabled = cartItems.isNotEmpty()) {
-                        Text("Очистить")
+                        Text(stringResource(R.string.common_clear))
                     }
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         TextButton(onClick = onDismiss) {
-                            Text("Закрыть")
+                            Text(stringResource(R.string.common_close))
                         }
                         Spacer(modifier = Modifier.width(6.dp))
                         Button(
@@ -206,7 +207,7 @@ fun GeneticCartDialog(
                             ),
                             border = BorderStroke(2.dp, Color(0xFF0072BC))
                         ) {
-                            Text("Купить")
+                            Text(stringResource(R.string.common_buy))
                         }
                     }
                 }

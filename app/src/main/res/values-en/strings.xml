@@ -1,0 +1,183 @@
+<resources>
+    <string name="app_name">mobile-module</string>
+
+    <string name="common_back">Back</string>
+    <string name="common_cancel">Cancel</string>
+    <string name="common_close">Close</string>
+    <string name="common_clear">Clear</string>
+    <string name="common_buy">Buy</string>
+    <string name="common_delete">Delete</string>
+    <string name="common_all">All</string>
+    <string name="common_unknown_value">?</string>
+    <string name="common_none">none</string>
+    <string name="common_enabled">on</string>
+    <string name="common_disabled">off</string>
+    <string name="common_dash">-</string>
+
+    <string name="welcome_title">Welcome to HITsGis</string>
+    <string name="welcome_open_map">Open map</string>
+    <string name="welcome_change_language">Language: %1$s</string>
+    <string name="language_russian">Russian</string>
+    <string name="language_english">English</string>
+    <string name="welcome_switch_to_dark_theme">Dark theme</string>
+    <string name="welcome_switch_to_light_theme">Light theme</string>
+
+    <string name="drawing_clear">Clear</string>
+    <string name="drawing_recognize">Recognize</string>
+
+    <string name="result_recognition_error_default">Failed to recognize the digit</string>
+    <string name="result_error_prefix">Error: %1$s</string>
+    <string name="result_recognized_digit">Recognized digit: %1$d</string>
+    <string name="result_apply_rating">Apply rating</string>
+    <string name="result_draw_another">Draw another</string>
+
+    <string name="decision_title">Where to have lunch?</string>
+    <string name="decision_show_tree">Show tree</string>
+    <string name="decision_hide_tree">Hide tree</string>
+    <string name="decision_tree_structure">Decision tree structure:</string>
+    <string name="decision_choose_conditions">Choose conditions:</string>
+    <string name="decision_label_location">Location</string>
+    <string name="decision_label_budget">Budget</string>
+    <string name="decision_label_time_available">Available time</string>
+    <string name="decision_label_food_type">Food type</string>
+    <string name="decision_label_queue_tolerance">Queue tolerance</string>
+    <string name="decision_label_weather">Weather</string>
+    <string name="decision_find_lunch_place">Find a lunch place</string>
+    <string name="decision_recommendation">Recommendation:</string>
+    <string name="decision_logic_path">Decision logic (tree path):</string>
+    <string name="decision_path_item">• %1$s</string>
+    <string name="decision_csv_training_title">CSV training:</string>
+    <string name="decision_csv_training_hint">Upload your data in format: location,budget,time_available,food_type,queue_tolerance,weather,recommended_place</string>
+    <string name="decision_csv_placeholder">Paste data...</string>
+    <string name="decision_train">Train</string>
+    <string name="decision_reset">Reset</string>
+    <string name="decision_tree_leaf">↳ Decision: %1$s</string>
+    <string name="decision_tree_if_feature">? If %1$s:</string>
+    <string name="decision_tree_value_item">  - %1$s:</string>
+    <string name="decision_feature_location">Location</string>
+    <string name="decision_feature_budget">Budget</string>
+    <string name="decision_feature_time_available">Available time</string>
+    <string name="decision_feature_food_type">Food type</string>
+    <string name="decision_feature_queue_tolerance">Queue tolerance</string>
+    <string name="decision_feature_weather">Weather</string>
+    <string name="decision_option_main_building">Main building</string>
+    <string name="decision_option_second_building">Second building</string>
+    <string name="decision_option_bus_stop">Bus stop</string>
+    <string name="decision_option_campus_center">Campus center</string>
+    <string name="decision_option_low">Low</string>
+    <string name="decision_option_medium">Medium</string>
+    <string name="decision_option_high">High</string>
+    <string name="decision_option_very_short">Very short</string>
+    <string name="decision_option_short">Short</string>
+    <string name="decision_option_coffee">Coffee</string>
+    <string name="decision_option_pancakes">Pancakes</string>
+    <string name="decision_option_full_meal">Full meal</string>
+    <string name="decision_option_snack">Snack</string>
+    <string name="decision_option_good_weather">Good</string>
+    <string name="decision_option_bad_weather">Bad</string>
+
+    <string name="tools_title">Tools</string>
+    <string name="tools_show_walkable_cells">Show walkable cells</string>
+    <string name="tools_show_poi">Show POI points</string>
+    <string name="tools_show_tap_coordinates">Show tap coordinates</string>
+    <string name="tools_ribbon_mode_astar">Ribbon mode for A*</string>
+    <string name="tools_clear_ribbons">Clear ribbons</string>
+    <string name="tools_open_editor">Open editor</string>
+    <string name="tools_close_editor">Close editor</string>
+
+    <string name="editor_button_poi">POI</string>
+    <string name="editor_button_save">SAVE</string>
+
+    <string name="map_choose_action">Choose action</string>
+    <string name="map_action_build_route">Build route (A*)</string>
+    <string name="map_action_food_clusters">Food clusters</string>
+    <string name="map_action_genetic_food_route">Genetic food route</string>
+    <string name="map_action_ant_landmarks">Ant landmarks tour</string>
+    <string name="map_action_ant_cowork">Cowork selection (ant)</string>
+    <string name="map_action_decision_tree_lunch">Decision tree: lunch</string>
+    <string name="tap_coordinates_badge">row=%1$d col=%2$d value=%3$s</string>
+
+    <string name="poi_rating_label">Rating</string>
+    <string name="poi_not_rated">Not rated</string>
+    <string name="poi_rate_button">Set rating</string>
+    <string name="poi_working_hours">Working hours</string>
+    <string name="poi_menu_title">Menu</string>
+    <string name="poi_capacity_info">Capacity</string>
+    <string name="poi_comfort_info">Comfort</string>
+    <string name="poi_extra_data_missing">No extra data.</string>
+    <string name="poi_new_point_title">New point (%1$d, %2$d)</string>
+    <string name="poi_name_label">Name</string>
+    <string name="poi_type_landmark_short">Landm.</string>
+    <string name="poi_type_food_short">Food</string>
+    <string name="poi_type_space_short">Cowork</string>
+    <string name="poi_menu_label">Menu (comma-separated)</string>
+    <string name="poi_open_label">Open</string>
+    <string name="poi_close_label">Close</string>
+    <string name="poi_capacity_label">Capacity</string>
+    <string name="poi_comfort_label">Comfort (0..1)</string>
+    <string name="poi_create_button">Create</string>
+    <string name="poi_list_title">POI list</string>
+
+    <string name="genetic_choose_dishes">Choose dishes</string>
+    <string name="genetic_cart_button">Cart (%1$d)</string>
+    <string name="genetic_cart_title">Cart</string>
+    <string name="genetic_cart_empty">Cart is empty</string>
+
+    <string name="clustering_title">Clustering settings</string>
+    <string name="clustering_subtitle">Choose one or two metrics for comparison.</string>
+    <string name="clustering_metric_euclidean">Euclidean distance</string>
+    <string name="clustering_metric_walkable">Walkable distance (A*)</string>
+    <string name="clustering_build_button">Build</string>
+
+    <string name="ant_landmarks_title">Ant landmarks tour</string>
+    <string name="ant_landmarks_selected_count">Selected points: %1$d</string>
+    <string name="ant_landmarks_choose_start">Choose start</string>
+    <string name="ant_cowork_title">Cowork selection</string>
+    <string name="ant_cowork_subtitle">Enter number of students to distribute.</string>
+    <string name="ant_cowork_students_label">Students count</string>
+    <string name="ant_cowork_find_button">Find cowork</string>
+
+    <string name="map_toast_rating_saved">Rating saved: %1$d</string>
+    <string name="map_toast_start_must_be_walkable">Start must be on a walkable cell (value 1).</string>
+    <string name="map_toast_select_at_least_one_landmark">Select at least one landmark.</string>
+    <string name="map_toast_ant_tour_finished">Ant tour finished.</string>
+    <string name="map_toast_cowork_finished">Cowork selection finished.</string>
+    <string name="map_toast_genetic_finished_missing">Genetic run finished. Not bought: %1$d</string>
+    <string name="map_toast_route_not_found">Route does not exist</string>
+    <string name="map_toast_select_start_for_genetic">Select a start point on the map to run genetics.</string>
+    <string name="map_toast_select_start_on_map">Select a start point on the map.</string>
+    <string name="map_toast_invalid_students_count">Enter a valid number of students.</string>
+    <string name="map_toast_no_classroom_seats">No seats available in classrooms.</string>
+    <string name="map_toast_no_student_spaces">No available student spaces.</string>
+    <string name="map_toast_matrix_not_loaded">Map matrix is not loaded yet.</string>
+    <string name="map_toast_select_at_least_one_metric">Select at least one metric.</string>
+    <string name="map_toast_no_food_pois">No food POI points found.</string>
+    <string name="map_toast_clusters_done_with_diff">Done. Differing points: %1$d</string>
+    <string name="map_toast_clusters_done">Done. Clusters are built.</string>
+
+    <string name="map_astar_status_select_start">A*: select start point</string>
+    <string name="map_astar_status_select_end">A*: select end point</string>
+    <string name="map_astar_status_animating">A*: iterative animation in progress</string>
+    <string name="map_astar_status_calculating">A*: calculating route</string>
+    <string name="map_astar_status_built">A*: route built</string>
+    <string name="map_ribbons_status">Ribbons: %1$d (ribbon mode: %2$s)</string>
+
+    <string name="map_genetic_status_select_start">Genetic route: select a start point on a path</string>
+    <string name="map_genetic_status_iteration">Genetic route: iteration %1$d/%2$d</string>
+    <string name="map_genetic_status_best_score">Best score: %1$s | Not bought: %2$d</string>
+
+    <string name="map_ant_status_select_start">Ant algorithm: select a start point on a path</string>
+    <string name="map_ant_status_iteration">Ant algorithm: iteration %1$d/%2$d</string>
+    <string name="map_ant_status_best_score">Best score: %1$s | %2$s</string>
+    <string name="map_ant_status_tour_points">Points in tour: %1$d</string>
+    <string name="map_ant_status_best_route_points">Points in best route: %1$d</string>
+    <string name="map_ant_status_students_in_task">Students in task: %1$d</string>
+    <string name="map_ant_status_primary_cowork">Primary cowork: %1$s | Assigned: %2$d</string>
+
+    <string name="map_cluster_metric_euclidean">Euclidean</string>
+    <string name="map_cluster_metric_walkable">Walkable (A*)</string>
+    <string name="map_cluster_metric_walkable_short">Walkable(A*)</string>
+    <string name="map_cluster_status">Clusters: metric %1$s, k=%2$s</string>
+    <string name="map_cluster_diff_points">Points with different clusters between metrics: %1$d</string>
+</resources>
+

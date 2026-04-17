@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
@@ -47,12 +48,12 @@ fun ClusteringSettingsDialog(
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 Text(
-                    text = "Кластеры еды",
+                    text = stringResource(R.string.clustering_title),
                     fontFamily = FontFamily(Font(R.font.manropebold)),
                     fontSize = 18.sp
                 )
                 Text(
-                    text = "Выберите метрики. Количество кластеров определяется автоматически",
+                    text = stringResource(R.string.clustering_subtitle),
                     color = Color.Gray,
                     fontSize = 13.sp
                 )
@@ -62,7 +63,7 @@ fun ClusteringSettingsDialog(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(text = "Евклидово расстояние", fontSize = 14.sp)
+                    Text(text = stringResource(R.string.clustering_metric_euclidean), fontSize = 14.sp)
                     Checkbox(checked = useEuclidean, onCheckedChange = onUseEuclideanChange)
                 }
 
@@ -71,7 +72,7 @@ fun ClusteringSettingsDialog(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(text = "Пешеходное (A*)", fontSize = 14.sp)
+                    Text(text = stringResource(R.string.clustering_metric_walkable), fontSize = 14.sp)
                     Checkbox(checked = useWalkable, onCheckedChange = onUseWalkableChange)
                 }
 
@@ -82,7 +83,7 @@ fun ClusteringSettingsDialog(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     TextButton(onClick = onDismiss) {
-                        Text("Отмена")
+                        Text(stringResource(R.string.common_cancel))
                     }
                     Button(
                         onClick = onRun,
@@ -92,7 +93,7 @@ fun ClusteringSettingsDialog(
                         ),
                         border = BorderStroke(2.dp, Color(0xFF0072BC))
                     ) {
-                        Text("Построить кластеры")
+                        Text(stringResource(R.string.clustering_build_button))
                     }
                 }
             }

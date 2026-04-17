@@ -5,12 +5,12 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -20,16 +20,18 @@ fun ActionButton(
     active: Boolean = false,
     onClick: () -> Unit = {}
 ) {
+    val colorScheme = MaterialTheme.colorScheme
+
     OutlinedButton(
         onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
             .height(55.dp),
         shape = RoundedCornerShape(12.dp),
-        border = BorderStroke(2.dp, Color(0xFF0072BC)),
+        border = BorderStroke(2.dp, colorScheme.outline),
         colors = ButtonDefaults.outlinedButtonColors(
-            containerColor = if (active) Color(0xFFE7F3FF) else Color.White,
-            contentColor = Color.Black
+            containerColor = if (active) colorScheme.secondaryContainer else colorScheme.surface,
+            contentColor = colorScheme.onSurface
         )
     ) {
         Row(
@@ -37,13 +39,15 @@ fun ActionButton(
             horizontalArrangement = Arrangement.Start,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(text = text, color = Color.Black, fontSize = 16.sp)
+            Text(text = text, color = colorScheme.onSurface, fontSize = 16.sp)
         }
     }
 }
 
 @Composable
 fun EditorButton(text: String, active: Boolean, onClick: () -> Unit) {
+    val colorScheme = MaterialTheme.colorScheme
+
     Button(
         onClick = onClick,
         modifier = Modifier
@@ -52,10 +56,10 @@ fun EditorButton(text: String, active: Boolean, onClick: () -> Unit) {
         shape = RoundedCornerShape(6.dp),
         contentPadding = PaddingValues(0.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = if (active) Color(0xFFFFF59D) else Color.White,
-            contentColor = Color.Black
+            containerColor = if (active) colorScheme.secondaryContainer else colorScheme.surface,
+            contentColor = colorScheme.onSurface
         ),
-        border = BorderStroke(2.dp, Color(0xFF4A2CC8))
+        border = BorderStroke(2.dp, colorScheme.outline)
     ) {
         Text(text = text, fontSize = 18.sp)
     }

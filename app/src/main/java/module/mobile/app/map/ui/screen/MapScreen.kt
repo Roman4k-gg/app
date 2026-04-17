@@ -16,16 +16,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import java.util.Calendar
+import java.util.Locale
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import module.mobile.app.R
 import module.mobile.app.algorithms.AntColonyAlgorithm
 import module.mobile.app.algorithms.AntCoworkRequest
 import module.mobile.app.algorithms.AntTourRequest
@@ -223,7 +226,11 @@ fun MapScreen(
             savePois(context, schemaVersion, updated)
         }
 
-        Toast.makeText(context, "Оценка сохранена: $normalized", Toast.LENGTH_SHORT).show()
+        Toast.makeText(
+            context,
+            context.getString(R.string.map_toast_rating_saved, normalized),
+            Toast.LENGTH_SHORT
+        ).show()
         onConsumeRatingUpdate()
     }
 
@@ -375,7 +382,7 @@ fun MapScreen(
                                 if (currentGrid[clickedRow][clickedCol] != 1) {
                                     Toast.makeText(
                                         context,
-                                        "Старт должен быть на проходимой клетке (значение 1).",
+                                        context.getString(R.string.map_toast_start_must_be_walkable),
                                         Toast.LENGTH_SHORT
                                     ).show()
                                     return@MapCanvasLayer
@@ -402,7 +409,7 @@ fun MapScreen(
                                                 withContext(Dispatchers.Main) {
                                                     Toast.makeText(
                                                         context,
-                                                        "Выберите хотя бы одну достопримечательность.",
+                                                        context.getString(R.string.map_toast_select_at_least_one_landmark),
                                                         Toast.LENGTH_SHORT
                                                     ).show()
                                                 }
@@ -421,7 +428,10 @@ fun MapScreen(
                                                 antIteration = 0
                                                 antTotalIterations = request.config.iterations
                                                 antBestScore = null
-                                                antStatusLine = "Точек в туре: ${selectedLandmarks.size}"
+                                                antStatusLine = context.getString(
+                                                    R.string.map_ant_status_tour_points,
+                                                    selectedLandmarks.size
+                                                )
                                             }
 
                                             try {
@@ -430,7 +440,10 @@ fun MapScreen(
                                                         antIteration = progress.iteration
                                                         antTotalIterations = progress.totalIterations
                                                         antBestScore = progress.bestScore
-                                                        antStatusLine = "Точек в лучшем маршруте: ${progress.bestVisitOrder.size}"
+                                                        antStatusLine = context.getString(
+                                                            R.string.map_ant_status_best_route_points,
+                                                            progress.bestVisitOrder.size
+                                                        )
                                                         if (progress.bestPath.isNotEmpty()) {
                                                             path = progress.bestPath
                                                             endPoint = progress.bestPath.last()
@@ -441,7 +454,11 @@ fun MapScreen(
                                                 withContext(Dispatchers.Main) {
                                                     isAntRunning = false
                                                     isCalculating = false
-                                                    Toast.makeText(context, "Муравьиный тур завершен.", Toast.LENGTH_SHORT).show()
+                                                    Toast.makeText(
+                                                        context,
+                                                        context.getString(R.string.map_toast_ant_tour_finished),
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
                                                 }
                                             }
                                         }
@@ -460,7 +477,10 @@ fun MapScreen(
                                                 antIteration = 0
                                                 antTotalIterations = request.config.iterations
                                                 antBestScore = null
-                                                antStatusLine = "Студентов в задаче: ${request.studentCount}"
+                                                antStatusLine = context.getString(
+                                                    R.string.map_ant_status_students_in_task,
+                                                    request.studentCount
+                                                )
                                             }
 
                                             try {
@@ -469,9 +489,14 @@ fun MapScreen(
                                                         antIteration = progress.iteration
                                                         antTotalIterations = progress.totalIterations
                                                         antBestScore = progress.bestScore
-                                                        val primaryName = progress.primarySpace?.name ?: "нет"
+                                                        val primaryName = progress.primarySpace?.name
+                                                            ?: context.getString(R.string.common_none)
                                                         val assigned = progress.allocation.sumOf { it.assignedStudents }
-                                                        antStatusLine = "Основной коворк: $primaryName | Распределено: $assigned"
+                                                        antStatusLine = context.getString(
+                                                            R.string.map_ant_status_primary_cowork,
+                                                            primaryName,
+                                                            assigned
+                                                        )
                                                         if (progress.primaryPath.isNotEmpty()) {
                                                             path = progress.primaryPath
                                                             endPoint = progress.primaryPath.last()
@@ -482,7 +507,11 @@ fun MapScreen(
                                                 withContext(Dispatchers.Main) {
                                                     isAntRunning = false
                                                     isCalculating = false
-                                                    Toast.makeText(context, "Подбор коворкинга завершен.", Toast.LENGTH_SHORT).show()
+                                                    Toast.makeText(
+                                                        context,
+                                                        context.getString(R.string.map_toast_cowork_finished),
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
                                                 }
                                             }
                                         }
@@ -497,7 +526,7 @@ fun MapScreen(
                                 if (currentGrid[clickedRow][clickedCol] != 1) {
                                     Toast.makeText(
                                         context,
-                                        "Старт должен быть на проходимой клетке (значение 1).",
+                                        context.getString(R.string.map_toast_start_must_be_walkable),
                                         Toast.LENGTH_SHORT
                                     ).show()
                                     return@MapCanvasLayer
@@ -555,7 +584,10 @@ fun MapScreen(
                                             isCalculating = false
                                             Toast.makeText(
                                                 context,
-                                                "Генетический расчет завершен. Не куплено: $geneticMissingItemsCount",
+                                                context.getString(
+                                                    R.string.map_toast_genetic_finished_missing,
+                                                    geneticMissingItemsCount
+                                                ),
                                                 Toast.LENGTH_SHORT
                                             ).show()
                                         }
@@ -604,7 +636,11 @@ fun MapScreen(
                                                 }
                                                 path = traced.path
                                                 if (traced.path == null) {
-                                                    Toast.makeText(context, "Маршрут не существует", Toast.LENGTH_SHORT).show()
+                                                    Toast.makeText(
+                                                        context,
+                                                        context.getString(R.string.map_toast_route_not_found),
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
                                                 }
                                                 isAstarAnimating = false
                                                 astarStepState = null
@@ -737,21 +773,29 @@ fun MapScreen(
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp),
                     shape = RoundedCornerShape(12.dp),
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.surface,
                     border = BorderStroke(2.dp, Color(0xFF0072BC)),
                     shadowElevation = 8.dp
                 ) {
                     Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
                         val statusText = when {
-                            startPoint == null -> "A*: выберите стартовую точку"
-                            endPoint == null -> "A*: выберите конечную точку"
-                            isAstarAnimating -> "A*: идет итерационная анимация"
-                            isCalculating -> "A*: расчет маршрута"
-                            else -> "A*: маршрут построен"
+                            startPoint == null -> stringResource(R.string.map_astar_status_select_start)
+                            endPoint == null -> stringResource(R.string.map_astar_status_select_end)
+                            isAstarAnimating -> stringResource(R.string.map_astar_status_animating)
+                            isCalculating -> stringResource(R.string.map_astar_status_calculating)
+                            else -> stringResource(R.string.map_astar_status_built)
                         }
                         Text(text = statusText, style = MaterialTheme.typography.bodyMedium)
                         Text(
-                            text = "Ленты: ${ribbonCells.size} (режим лент: ${if (ribbonModeEnabled) "вкл" else "выкл"})",
+                            text = stringResource(
+                                R.string.map_ribbons_status,
+                                ribbonCells.size,
+                                if (ribbonModeEnabled) {
+                                    stringResource(R.string.common_enabled)
+                                } else {
+                                    stringResource(R.string.common_disabled)
+                                }
+                            ),
                             style = MaterialTheme.typography.bodySmall,
                             color = Color.Gray
                         )
@@ -767,22 +811,31 @@ fun MapScreen(
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp),
                     shape = RoundedCornerShape(12.dp),
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.surface,
                     border = BorderStroke(2.dp, Color(0xFF0072BC)),
                     shadowElevation = 8.dp
                 ) {
                     Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
                         Text(
                             text = if (isSelectingGeneticStart) {
-                                "Генетический маршрут: выберите стартовую точку на дорожке"
+                                stringResource(R.string.map_genetic_status_select_start)
                             } else {
-                                "Генетический маршрут: итерация $geneticIteration/$geneticTotalIterations"
+                                stringResource(
+                                    R.string.map_genetic_status_iteration,
+                                    geneticIteration,
+                                    geneticTotalIterations
+                                )
                             },
                             style = MaterialTheme.typography.bodyMedium
                         )
                         if (isGeneticRunning) {
                             Text(
-                                text = "Лучший score: ${geneticBestScore?.let { String.format("%.2f", it) } ?: "-"} | Не куплено: $geneticMissingItemsCount",
+                                text = stringResource(
+                                    R.string.map_genetic_status_best_score,
+                                    geneticBestScore?.let { String.format(Locale.getDefault(), "%.2f", it) }
+                                        ?: stringResource(R.string.common_dash),
+                                    geneticMissingItemsCount
+                                ),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = Color.Gray
                             )
@@ -800,22 +853,31 @@ fun MapScreen(
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp),
                     shape = RoundedCornerShape(12.dp),
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.surface,
                     border = BorderStroke(2.dp, Color(0xFF0072BC)),
                     shadowElevation = 8.dp
                 ) {
                     Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
                         Text(
                             text = if (antPendingAction != AntPendingAction.None) {
-                                "Муравьиный алгоритм: выберите стартовую точку на дорожке"
+                                stringResource(R.string.map_ant_status_select_start)
                             } else {
-                                "Муравьиный алгоритм: итерация $antIteration/$antTotalIterations"
+                                stringResource(
+                                    R.string.map_ant_status_iteration,
+                                    antIteration,
+                                    antTotalIterations
+                                )
                             },
                             style = MaterialTheme.typography.bodyMedium
                         )
                         if (isAntRunning) {
                             Text(
-                                text = "Лучший score: ${antBestScore?.let { String.format("%.2f", it) } ?: "-"} | $antStatusLine",
+                                text = stringResource(
+                                    R.string.map_ant_status_best_score,
+                                    antBestScore?.let { String.format(Locale.getDefault(), "%.2f", it) }
+                                        ?: stringResource(R.string.common_dash),
+                                    antStatusLine
+                                ),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = Color.Gray
                             )
@@ -838,23 +900,30 @@ fun MapScreen(
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp),
                     shape = RoundedCornerShape(12.dp),
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.surface,
                     border = BorderStroke(2.dp, Color(0xFF0072BC)),
                     shadowElevation = 8.dp
                 ) {
                     Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
                         val metricLabel = when (activeClusterMetric) {
-                            ClusterMetric.Euclidean -> "Евклидово"
-                            ClusterMetric.WalkableAStar -> "Пешеходное (A*)"
+                            ClusterMetric.Euclidean -> stringResource(R.string.map_cluster_metric_euclidean)
+                            ClusterMetric.WalkableAStar -> stringResource(R.string.map_cluster_metric_walkable)
                         }
                         val selectedK = clusterState.selectedKByMetric[activeClusterMetric]
                         Text(
-                            text = "Кластеры: метрика $metricLabel, k=${selectedK ?: "-"}",
+                            text = stringResource(
+                                R.string.map_cluster_status,
+                                metricLabel,
+                                selectedK?.toString() ?: stringResource(R.string.common_dash)
+                            ),
                             style = MaterialTheme.typography.bodyMedium
                         )
                         if (clusterState.metrics.size > 1) {
                             Text(
-                                text = "Точек с разными кластерами между метриками: ${clusterState.differingPoiIds.size}",
+                                text = stringResource(
+                                    R.string.map_cluster_diff_points,
+                                    clusterState.differingPoiIds.size
+                                ),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = Color.Gray
                             )
@@ -862,7 +931,7 @@ fun MapScreen(
                                 if (ClusterMetric.Euclidean in clusterState.metrics) {
                                     TextButton(onClick = { activeClusterMetric = ClusterMetric.Euclidean }) {
                                         Text(
-                                            text = "Евклидово",
+                                            text = stringResource(R.string.map_cluster_metric_euclidean),
                                             color = if (activeClusterMetric == ClusterMetric.Euclidean) Color(0xFF0072BC) else Color.Gray
                                         )
                                     }
@@ -870,7 +939,7 @@ fun MapScreen(
                                 if (ClusterMetric.WalkableAStar in clusterState.metrics) {
                                     TextButton(onClick = { activeClusterMetric = ClusterMetric.WalkableAStar }) {
                                         Text(
-                                            text = "Пешеходное(A*)",
+                                            text = stringResource(R.string.map_cluster_metric_walkable_short),
                                             color = if (activeClusterMetric == ClusterMetric.WalkableAStar) Color(0xFF0072BC) else Color.Gray
                                         )
                                     }
@@ -1052,7 +1121,7 @@ fun MapScreen(
                         antPendingAction = AntPendingAction.None
                         Toast.makeText(
                             context,
-                            "Выберите стартовую точку на карте для запуска генетики.",
+                            context.getString(R.string.map_toast_select_start_for_genetic),
                             Toast.LENGTH_SHORT
                         ).show()
                     },
@@ -1075,12 +1144,20 @@ fun MapScreen(
                     onClear = { antSelectedLandmarkIds = emptySet() },
                     onStart = {
                         if (antSelectedLandmarkIds.isEmpty()) {
-                            Toast.makeText(context, "Выберите хотя бы одну достопримечательность.", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                context,
+                                context.getString(R.string.map_toast_select_at_least_one_landmark),
+                                Toast.LENGTH_SHORT
+                            ).show()
                             return@AntLandmarksDialog
                         }
                         showAntLandmarksDialog = false
                         antPendingAction = AntPendingAction.Landmarks
-                        Toast.makeText(context, "Выберите стартовую точку на карте.", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            context,
+                            context.getString(R.string.map_toast_select_start_on_map),
+                            Toast.LENGTH_SHORT
+                        ).show()
                     },
                     onDismiss = { showAntLandmarksDialog = false }
                 )
@@ -1093,17 +1170,37 @@ fun MapScreen(
                     onFindCowork = {
                         val count = antStudentsInput.toIntOrNull()
                         if (count == null || count <= 0) {
-                            Toast.makeText(context, "Введите корректное число студентов.", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                context,
+                                context.getString(R.string.map_toast_invalid_students_count),
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            return@AntCoworkSettingsDialog
+                        }
+                        if (count > 30) {
+                            Toast.makeText(
+                                context,
+                                context.getString(R.string.map_toast_no_classroom_seats),
+                                Toast.LENGTH_SHORT
+                            ).show()
                             return@AntCoworkSettingsDialog
                         }
                         if (studentSpacePois.isEmpty()) {
-                            Toast.makeText(context, "Нет доступных студенческих пространств.", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                context,
+                                context.getString(R.string.map_toast_no_student_spaces),
+                                Toast.LENGTH_SHORT
+                            ).show()
                             return@AntCoworkSettingsDialog
                         }
                         antStudentCount = count
                         showAntCoworkDialog = false
                         antPendingAction = AntPendingAction.Cowork
-                        Toast.makeText(context, "Выберите стартовую точку на карте.", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            context,
+                            context.getString(R.string.map_toast_select_start_on_map),
+                            Toast.LENGTH_SHORT
+                        ).show()
                     },
                     onDismiss = { showAntCoworkDialog = false }
                 )
@@ -1118,7 +1215,11 @@ fun MapScreen(
                     onRun = {
                         val currentGrid = grid
                         if (currentGrid == null) {
-                            Toast.makeText(context, "Матрица карты еще не загружена.", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                context,
+                                context.getString(R.string.map_toast_matrix_not_loaded),
+                                Toast.LENGTH_SHORT
+                            ).show()
                             return@ClusteringSettingsDialog
                         }
                         val selectedMetrics = buildSet {
@@ -1126,7 +1227,11 @@ fun MapScreen(
                             if (useWalkableCluster) add(ClusterMetric.WalkableAStar)
                         }
                         if (selectedMetrics.isEmpty()) {
-                            Toast.makeText(context, "Выберите хотя бы одну метрику.", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                context,
+                                context.getString(R.string.map_toast_select_at_least_one_metric),
+                                Toast.LENGTH_SHORT
+                            ).show()
                             return@ClusteringSettingsDialog
                         }
                         val gridSnapshot = Array(currentGrid.size) { row -> currentGrid[row].clone() }
@@ -1149,13 +1254,17 @@ fun MapScreen(
                                     ClusterMetric.WalkableAStar
                                 }
                                 if (result.assignmentsByMetric.isEmpty()) {
-                                    Toast.makeText(context, "Не найдено точек заведений (food).", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(
+                                        context,
+                                        context.getString(R.string.map_toast_no_food_pois),
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                 } else {
                                     val diffCount = result.differingPoiIds.size
                                     val runInfo = if (result.metrics.size > 1) {
-                                        "Готово. Различающихся точек: $diffCount"
+                                        context.getString(R.string.map_toast_clusters_done_with_diff, diffCount)
                                     } else {
-                                        "Готово. Кластеры построены."
+                                        context.getString(R.string.map_toast_clusters_done)
                                     }
                                     Toast.makeText(context, runInfo, Toast.LENGTH_SHORT).show()
                                 }

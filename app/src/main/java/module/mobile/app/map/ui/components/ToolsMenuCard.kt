@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
@@ -16,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
@@ -37,14 +39,16 @@ fun ToolsMenuCard(
     editorVisible: Boolean,
     onToggleEditor: () -> Unit
 ) {
+    val colorScheme = MaterialTheme.colorScheme
+
     Surface(
         modifier = Modifier
             .padding(start = 86.dp, top = 8.dp)
             .width(300.dp)
             .zIndex(3f),
-        color = Color.White,
+        color = colorScheme.surface,
         shape = RoundedCornerShape(12.dp),
-        border = BorderStroke(2.dp, Color(0xFF0072BC)),
+        border = BorderStroke(2.dp, colorScheme.outline),
         shadowElevation = 10.dp
     ) {
         Column(
@@ -52,7 +56,7 @@ fun ToolsMenuCard(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(
-                text = "Инструменты",
+                text = stringResource(R.string.tools_title),
                 fontFamily = FontFamily(Font(R.font.manropebold)),
                 fontSize = 16.sp
             )
@@ -62,7 +66,7 @@ fun ToolsMenuCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("Показывать клетки 1", fontSize = 14.sp)
+                Text(stringResource(R.string.tools_show_walkable_cells), fontSize = 14.sp)
                 Switch(checked = showWalkableCells, onCheckedChange = onShowWalkableCellsChange)
             }
 
@@ -71,7 +75,7 @@ fun ToolsMenuCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("Показывать точки интереса", fontSize = 14.sp)
+                Text(stringResource(R.string.tools_show_poi), fontSize = 14.sp)
                 Switch(checked = showPoiMarkers, onCheckedChange = onShowPoiMarkersChange)
             }
 
@@ -80,7 +84,7 @@ fun ToolsMenuCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("Показывать координаты тапа", fontSize = 14.sp)
+                Text(stringResource(R.string.tools_show_tap_coordinates), fontSize = 14.sp)
                 Switch(checked = showTapCoordinates, onCheckedChange = onShowTapCoordinatesChange)
             }
 
@@ -89,28 +93,32 @@ fun ToolsMenuCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("Режим лент A*", fontSize = 14.sp)
+                Text(stringResource(R.string.tools_ribbon_mode_astar), fontSize = 14.sp)
                 Switch(checked = ribbonModeEnabled, onCheckedChange = onRibbonModeChange)
             }
 
             OutlinedButton(
                 onClick = onClearRibbons,
                 modifier = Modifier.fillMaxWidth(),
-                border = BorderStroke(2.dp, Color(0xFF0072BC)),
+                border = BorderStroke(2.dp, colorScheme.outline),
                 shape = RoundedCornerShape(10.dp)
             ) {
-                Text(text = "Очистить ленты", color = Color.Black)
+                Text(text = stringResource(R.string.tools_clear_ribbons), color = colorScheme.onSurface)
             }
 
             OutlinedButton(
                 onClick = onToggleEditor,
                 modifier = Modifier.fillMaxWidth(),
-                border = BorderStroke(2.dp, Color(0xFF0072BC)),
+                border = BorderStroke(2.dp, colorScheme.outline),
                 shape = RoundedCornerShape(10.dp)
             ) {
                 Text(
-                    text = if (editorVisible) "Закрыть редактор" else "Открыть редактор",
-                    color = Color.Black
+                    text = if (editorVisible) {
+                        stringResource(R.string.tools_close_editor)
+                    } else {
+                        stringResource(R.string.tools_open_editor)
+                    },
+                    color = colorScheme.onSurface
                 )
             }
         }

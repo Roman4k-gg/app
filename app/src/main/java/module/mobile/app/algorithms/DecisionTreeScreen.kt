@@ -13,9 +13,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import module.mobile.app.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,6 +40,32 @@ fun DecisionTreeScreen(onBack: () -> Unit) {
     val tolerances = listOf("low", "medium", "high")
     val weathers = listOf("good", "bad")
 
+    val featureLabels = mapOf(
+        "location" to stringResource(R.string.decision_feature_location),
+        "budget" to stringResource(R.string.decision_feature_budget),
+        "time_available" to stringResource(R.string.decision_feature_time_available),
+        "food_type" to stringResource(R.string.decision_feature_food_type),
+        "queue_tolerance" to stringResource(R.string.decision_feature_queue_tolerance),
+        "weather" to stringResource(R.string.decision_feature_weather)
+    )
+    val optionLabels = mapOf(
+        "main_building" to stringResource(R.string.decision_option_main_building),
+        "second_building" to stringResource(R.string.decision_option_second_building),
+        "bus_stop" to stringResource(R.string.decision_option_bus_stop),
+        "campus_center" to stringResource(R.string.decision_option_campus_center),
+        "low" to stringResource(R.string.decision_option_low),
+        "medium" to stringResource(R.string.decision_option_medium),
+        "high" to stringResource(R.string.decision_option_high),
+        "very_short" to stringResource(R.string.decision_option_very_short),
+        "short" to stringResource(R.string.decision_option_short),
+        "coffee" to stringResource(R.string.decision_option_coffee),
+        "pancakes" to stringResource(R.string.decision_option_pancakes),
+        "full_meal" to stringResource(R.string.decision_option_full_meal),
+        "snack" to stringResource(R.string.decision_option_snack),
+        "good" to stringResource(R.string.decision_option_good_weather),
+        "bad" to stringResource(R.string.decision_option_bad_weather)
+    )
+
     LaunchedEffect(Unit) {
         algorithm.train(DecisionTreeLunchAlgorithm.DEFAULT_DATA)
     }
@@ -45,15 +73,21 @@ fun DecisionTreeScreen(onBack: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Где пообедать?") },
+                title = { Text(stringResource(R.string.decision_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
                     }
                 },
                 actions = {
                     TextButton(onClick = { showTree = !showTree }) {
-                        Text(if (showTree) "Скрыть дерево" else "Показать дерево")
+                        Text(
+                            if (showTree) {
+                                stringResource(R.string.decision_hide_tree)
+                            } else {
+                                stringResource(R.string.decision_show_tree)
+                            }
+                        )
                     }
                 }
             )
@@ -68,23 +102,58 @@ fun DecisionTreeScreen(onBack: () -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             if (showTree) {
-                Text("Структура дерева решений:", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.decision_tree_structure), fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.height(8.dp))
-                TreeVisualizer(node = algorithm.getRoot(), depth = 0)
+                TreeVisualizer(
+                    node = algorithm.getRoot(),
+                    depth = 0,
+                    featureLabels = featureLabels,
+                    optionLabels = optionLabels
+                )
                 Spacer(modifier = Modifier.height(24.dp))
                 HorizontalDivider()
                 Spacer(modifier = Modifier.height(24.dp))
             }
 
-            Text("Выберите условия:", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.decision_choose_conditions), fontSize = 20.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(16.dp))
 
-            DropdownSelector("Местоположение", location, locations) { location = it }
-            DropdownSelector("Бюджет", budget, budgets) { budget = it }
-            DropdownSelector("Доступное время", timeAvailable, times) { timeAvailable = it }
-            DropdownSelector("Тип еды", foodType, foods) { foodType = it }
-            DropdownSelector("Очередь", queueTolerance, tolerances) { queueTolerance = it }
-            DropdownSelector("Погода", weather, weathers) { weather = it }
+            DropdownSelector(
+                label = stringResource(R.string.decision_label_location),
+                selected = location,
+                options = locations,
+                optionLabel = { optionLabels[it] ?: it }
+            ) { location = it }
+            DropdownSelector(
+                label = stringResource(R.string.decision_label_budget),
+                selected = budget,
+                options = budgets,
+                optionLabel = { optionLabels[it] ?: it }
+            ) { budget = it }
+            DropdownSelector(
+                label = stringResource(R.string.decision_label_time_available),
+                selected = timeAvailable,
+                options = times,
+                optionLabel = { optionLabels[it] ?: it }
+            ) { timeAvailable = it }
+            DropdownSelector(
+                label = stringResource(R.string.decision_label_food_type),
+                selected = foodType,
+                options = foods,
+                optionLabel = { optionLabels[it] ?: it }
+            ) { foodType = it }
+            DropdownSelector(
+                label = stringResource(R.string.decision_label_queue_tolerance),
+                selected = queueTolerance,
+                options = tolerances,
+                optionLabel = { optionLabels[it] ?: it }
+            ) { queueTolerance = it }
+            DropdownSelector(
+                label = stringResource(R.string.decision_label_weather),
+                selected = weather,
+                options = weathers,
+                optionLabel = { optionLabels[it] ?: it }
+            ) { weather = it }
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -103,7 +172,7 @@ fun DecisionTreeScreen(onBack: () -> Unit) {
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text("Найти место для обеда", fontSize = 16.sp, modifier = Modifier.padding(8.dp))
+                Text(stringResource(R.string.decision_find_lunch_place), fontSize = 16.sp, modifier = Modifier.padding(8.dp))
             }
 
             result?.let { (place, path) ->
@@ -114,13 +183,20 @@ fun DecisionTreeScreen(onBack: () -> Unit) {
                     elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Text("Рекомендация:", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color.Gray)
-                        Text(place, fontSize = 24.sp, color = Color(0xFF1976D2), fontWeight = FontWeight.ExtraBold)
-                        
+                        Text(stringResource(R.string.decision_recommendation), fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color.Gray)
+                        Text(formatDecisionResult(place), fontSize = 24.sp, color = Color(0xFF1976D2), fontWeight = FontWeight.ExtraBold)
+
                         Spacer(modifier = Modifier.height(12.dp))
-                        Text("Логика выбора (путь в дереве):", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                        Text(stringResource(R.string.decision_logic_path), fontWeight = FontWeight.Bold, fontSize = 14.sp)
                         path.forEach { step ->
-                            Text("• $step", fontSize = 14.sp, modifier = Modifier.padding(start = 8.dp, top = 2.dp))
+                            Text(
+                                stringResource(
+                                    R.string.decision_path_item,
+                                    formatDecisionStep(step, featureLabels, optionLabels)
+                                ),
+                                fontSize = 14.sp,
+                                modifier = Modifier.padding(start = 8.dp, top = 2.dp)
+                            )
                         }
                     }
                 }
@@ -130,15 +206,15 @@ fun DecisionTreeScreen(onBack: () -> Unit) {
             HorizontalDivider()
             Spacer(modifier = Modifier.height(24.dp))
             
-            Text("Обучение на CSV:", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-            Text("Загрузите свои данные в формате: location,budget,time_available,food_type,queue_tolerance,weather,recommended_place", 
+            Text(stringResource(R.string.decision_csv_training_title), fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.decision_csv_training_hint),
                 fontSize = 12.sp, color = Color.Gray, modifier = Modifier.padding(bottom = 8.dp))
             
             OutlinedTextField(
                 value = csvText,
                 onValueChange = { csvText = it },
                 modifier = Modifier.fillMaxWidth().height(150.dp),
-                placeholder = { Text("Вставьте данные...") },
+                placeholder = { Text(stringResource(R.string.decision_csv_placeholder)) },
                 textStyle = LocalTextStyle.current.copy(fontSize = 12.sp)
             )
             
@@ -153,7 +229,7 @@ fun DecisionTreeScreen(onBack: () -> Unit) {
                     },
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text("Обучить")
+                    Text(stringResource(R.string.decision_train))
                 }
                 
                 OutlinedButton(
@@ -164,7 +240,7 @@ fun DecisionTreeScreen(onBack: () -> Unit) {
                     },
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text("Сбросить")
+                    Text(stringResource(R.string.decision_reset))
                 }
             }
         }
@@ -172,19 +248,35 @@ fun DecisionTreeScreen(onBack: () -> Unit) {
 }
 
 @Composable
-fun TreeVisualizer(node: DecisionNode?, depth: Int) {
+fun TreeVisualizer(
+    node: DecisionNode?,
+    depth: Int,
+    featureLabels: Map<String, String>,
+    optionLabels: Map<String, String>
+) {
     if (node == null) return
 
     Column(modifier = Modifier.padding(start = (depth * 16).dp)) {
         when (node) {
             is DecisionNode.Leaf -> {
-                Text("↳ Решение: ${node.result}", color = Color(0xFF388E3C), fontWeight = FontWeight.Bold)
+                Text(
+                    stringResource(R.string.decision_tree_leaf, formatDecisionResult(node.result)),
+                    color = Color(0xFF388E3C),
+                    fontWeight = FontWeight.Bold
+                )
             }
             is DecisionNode.Internal -> {
-                Text("? Если ${node.feature}:", fontWeight = FontWeight.Medium)
+                Text(
+                    stringResource(R.string.decision_tree_if_feature, featureLabels[node.feature] ?: node.feature),
+                    fontWeight = FontWeight.Medium
+                )
                 node.children.forEach { (value, child) ->
-                    Text("  - $value:", color = Color.Gray, fontSize = 12.sp)
-                    TreeVisualizer(child, depth + 1)
+                    Text(
+                        stringResource(R.string.decision_tree_value_item, optionLabels[value] ?: value),
+                        color = Color.Gray,
+                        fontSize = 12.sp
+                    )
+                    TreeVisualizer(child, depth + 1, featureLabels, optionLabels)
                 }
             }
         }
@@ -193,7 +285,13 @@ fun TreeVisualizer(node: DecisionNode?, depth: Int) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DropdownSelector(label: String, selected: String, options: List<String>, onSelected: (String) -> Unit) {
+fun DropdownSelector(
+    label: String,
+    selected: String,
+    options: List<String>,
+    optionLabel: (String) -> String = { it },
+    onSelected: (String) -> Unit
+) {
     var expanded by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
@@ -203,7 +301,7 @@ fun DropdownSelector(label: String, selected: String, options: List<String>, onS
             onExpandedChange = { expanded = !expanded }
         ) {
             OutlinedTextField(
-                value = selected,
+                value = optionLabel(selected),
                 onValueChange = {},
                 readOnly = true,
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
@@ -216,7 +314,7 @@ fun DropdownSelector(label: String, selected: String, options: List<String>, onS
             ) {
                 options.forEach { option ->
                     DropdownMenuItem(
-                        text = { Text(option) },
+                        text = { Text(optionLabel(option)) },
                         onClick = {
                             onSelected(option)
                             expanded = false
@@ -227,3 +325,20 @@ fun DropdownSelector(label: String, selected: String, options: List<String>, onS
         }
     }
 }
+
+private fun formatDecisionResult(place: String): String = place.replace('_', ' ')
+
+private fun formatDecisionStep(
+    rawStep: String,
+    featureLabels: Map<String, String>,
+    optionLabels: Map<String, String>
+): String {
+    val parts = rawStep.split("=", limit = 2)
+    if (parts.size != 2) return rawStep
+    val featureKey = parts[0].trim()
+    val optionKey = parts[1].trim()
+    val featureLabel = featureLabels[featureKey] ?: featureKey
+    val optionLabel = optionLabels[optionKey] ?: optionKey
+    return "$featureLabel = $optionLabel"
+}
+

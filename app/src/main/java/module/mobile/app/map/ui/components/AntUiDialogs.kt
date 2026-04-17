@@ -22,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
@@ -53,12 +54,12 @@ fun AntLandmarksDialog(
                     .padding(16.dp)
             ) {
                 Text(
-                    text = "Выбор достопримечательностей",
+                    text = stringResource(R.string.ant_landmarks_title),
                     fontFamily = FontFamily(Font(R.font.manropebold)),
                     fontSize = 18.sp
                 )
                 Text(
-                    text = "Отмечено: ${selectedIds.size}",
+                    text = stringResource(R.string.ant_landmarks_selected_count, selectedIds.size),
                     color = Color.Gray,
                     fontSize = 13.sp,
                     modifier = Modifier.padding(top = 2.dp, bottom = 8.dp)
@@ -102,11 +103,11 @@ fun AntLandmarksDialog(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row {
-                        TextButton(onClick = onSelectAll) { Text("Все") }
-                        TextButton(onClick = onClear) { Text("Очистить") }
+                        TextButton(onClick = onSelectAll) { Text(stringResource(R.string.common_all)) }
+                        TextButton(onClick = onClear) { Text(stringResource(R.string.common_clear)) }
                     }
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        TextButton(onClick = onDismiss) { Text("Отмена") }
+                        TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel)) }
                         Button(
                             onClick = onStart,
                             colors = ButtonDefaults.buttonColors(
@@ -115,7 +116,7 @@ fun AntLandmarksDialog(
                             ),
                             border = BorderStroke(2.dp, Color(0xFF0072BC))
                         ) {
-                            Text("Выбрать старт")
+                            Text(stringResource(R.string.ant_landmarks_choose_start))
                         }
                     }
                 }
@@ -144,12 +145,12 @@ fun AntCoworkSettingsDialog(
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 Text(
-                    text = "Подбор коворкинга",
+                    text = stringResource(R.string.ant_cowork_title),
                     fontFamily = FontFamily(Font(R.font.manropebold)),
                     fontSize = 18.sp
                 )
                 Text(
-                    text = "Введите размер группы студентов",
+                    text = stringResource(R.string.ant_cowork_subtitle),
                     color = Color.Gray,
                     fontSize = 13.sp
                 )
@@ -157,7 +158,7 @@ fun AntCoworkSettingsDialog(
                 OutlinedTextField(
                     value = studentsValue,
                     onValueChange = { text -> onStudentsChange(text.filter { it.isDigit() }) },
-                    label = { Text("Количество студентов") },
+                    label = { Text(stringResource(R.string.ant_cowork_students_label)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -167,7 +168,7 @@ fun AntCoworkSettingsDialog(
                     horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    TextButton(onClick = onDismiss) { Text("Отмена") }
+                    TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel)) }
                     Button(
                         onClick = onFindCowork,
                         colors = ButtonDefaults.buttonColors(
@@ -176,7 +177,7 @@ fun AntCoworkSettingsDialog(
                         ),
                         border = BorderStroke(2.dp, Color(0xFF0072BC))
                     ) {
-                        Text("Найти коворк")
+                        Text(stringResource(R.string.ant_cowork_find_button))
                     }
                 }
             }

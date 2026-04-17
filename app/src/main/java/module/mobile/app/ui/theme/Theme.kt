@@ -1,6 +1,5 @@
 package module.mobile.app.ui.theme
 
-import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
@@ -12,13 +11,29 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
+    primary = TSUcolor,
+    onPrimary = androidx.compose.ui.graphics.Color.White,
     secondary = PurpleGrey80,
-    tertiary = Pink80
+    tertiary = Pink80,
+    background = DarkSurface,
+    surface = DarkSurface,
+    surfaceVariant = androidx.compose.ui.graphics.Color(0xFF3A3F46),
+    secondaryContainer = androidx.compose.ui.graphics.Color(0xFF455061),
+    onSecondaryContainer = androidx.compose.ui.graphics.Color.White,
+    outline = androidx.compose.ui.graphics.Color(0xFF78A9D6),
+    onBackground = androidx.compose.ui.graphics.Color.White,
+    onSurface = androidx.compose.ui.graphics.Color.White
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
+    primary = TSUcolor,
+    onPrimary = androidx.compose.ui.graphics.Color.White,
+    secondaryContainer = androidx.compose.ui.graphics.Color(0xFFF1F9FF),
+    onSecondaryContainer = androidx.compose.ui.graphics.Color(0xFF1B1B1F),
+    background = androidx.compose.ui.graphics.Color(0xFFFFFFFF),
+    surface = androidx.compose.ui.graphics.Color(0xFFFFFFFF),
+    surfaceVariant = androidx.compose.ui.graphics.Color(0xFFF7F9FC),
+    outline = TSUcolor,
     secondary = PurpleGrey40,
     tertiary = Pink40
 

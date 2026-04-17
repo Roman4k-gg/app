@@ -14,6 +14,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -22,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
@@ -51,11 +53,13 @@ fun CreatePoiDialog(
     onDismiss: () -> Unit,
     onCreate: () -> Unit
 ) {
+    val colorScheme = MaterialTheme.colorScheme
+
     Dialog(onDismissRequest = onDismiss) {
         Surface(
             shape = RoundedCornerShape(16.dp),
-            color = Color.White,
-            border = BorderStroke(2.dp, Color(0xFF0072BC))
+            color = colorScheme.surface,
+            border = BorderStroke(2.dp, colorScheme.outline)
         ) {
             Column(
                 modifier = Modifier
@@ -64,7 +68,7 @@ fun CreatePoiDialog(
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 Text(
-                    text = "Новая точка ($row, $col)",
+                    text = stringResource(R.string.poi_new_point_title, row, col),
                     fontFamily = FontFamily(Font(R.font.manropebold)),
                     fontSize = 18.sp
                 )
@@ -72,36 +76,36 @@ fun CreatePoiDialog(
                 OutlinedTextField(
                     value = name,
                     onValueChange = onNameChange,
-                    label = { Text("Название") },
+                    label = { Text(stringResource(R.string.poi_name_label)) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
 
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                    FilterChip(selected = type == "landmark", onClick = { onTypeChange("landmark") }, label = { Text("Достопр.") })
-                    FilterChip(selected = type == "food", onClick = { onTypeChange("food") }, label = { Text("Еда") })
-                    FilterChip(selected = type == "student_space", onClick = { onTypeChange("student_space") }, label = { Text("Пространство") })
+                    FilterChip(selected = type == "landmark", onClick = { onTypeChange("landmark") }, label = { Text(stringResource(R.string.poi_type_landmark_short)) })
+                    FilterChip(selected = type == "food", onClick = { onTypeChange("food") }, label = { Text(stringResource(R.string.poi_type_food_short)) })
+                    FilterChip(selected = type == "student_space", onClick = { onTypeChange("student_space") }, label = { Text(stringResource(R.string.poi_type_space_short)) })
                 }
 
                 if (type == "food") {
                     OutlinedTextField(
                         value = menu,
                         onValueChange = onMenuChange,
-                        label = { Text("menu (через запятую)") },
+                        label = { Text(stringResource(R.string.poi_menu_label)) },
                         modifier = Modifier.fillMaxWidth()
                     )
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         OutlinedTextField(
                             value = open,
                             onValueChange = onOpenChange,
-                            label = { Text("Открытие") },
+                            label = { Text(stringResource(R.string.poi_open_label)) },
                             modifier = Modifier.weight(1f),
                             singleLine = true
                         )
                         OutlinedTextField(
                             value = close,
                             onValueChange = onCloseChange,
-                            label = { Text("Закрытие") },
+                            label = { Text(stringResource(R.string.poi_close_label)) },
                             modifier = Modifier.weight(1f),
                             singleLine = true
                         )
@@ -113,14 +117,14 @@ fun CreatePoiDialog(
                         OutlinedTextField(
                             value = capacity,
                             onValueChange = onCapacityChange,
-                            label = { Text("Вместимость") },
+                            label = { Text(stringResource(R.string.poi_capacity_label)) },
                             modifier = Modifier.weight(1f),
                             singleLine = true
                         )
                         OutlinedTextField(
                             value = comfort,
                             onValueChange = onComfortChange,
-                            label = { Text("Комфорт") },
+                            label = { Text(stringResource(R.string.poi_comfort_label)) },
                             modifier = Modifier.weight(1f),
                             singleLine = true
                         )
@@ -129,16 +133,13 @@ fun CreatePoiDialog(
 
                 Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
                     TextButton(onClick = onDismiss) {
-                        Text("Отмена")
+                        Text(stringResource(R.string.common_cancel))
                     }
                     Button(
                         onClick = onCreate,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF5398F9),
-                            contentColor = Color.White
-                        )
+                        colors = ButtonDefaults.buttonColors(containerColor = colorScheme.primary)
                     ) {
-                        Text("Создать точку")
+                        Text(stringResource(R.string.poi_create_button))
                     }
                 }
             }
@@ -152,11 +153,13 @@ fun PoiListDialog(
     onDelete: (PoiItem) -> Unit,
     onDismiss: () -> Unit
 ) {
+    val colorScheme = MaterialTheme.colorScheme
+
     Dialog(onDismissRequest = onDismiss) {
         Surface(
             shape = RoundedCornerShape(16.dp),
-            color = Color.White,
-            border = BorderStroke(2.dp, Color(0xFF0072BC))
+            color = colorScheme.surface,
+            border = BorderStroke(2.dp, colorScheme.outline)
         ) {
             Column(
                 modifier = Modifier
@@ -165,7 +168,7 @@ fun PoiListDialog(
                     .padding(16.dp)
             ) {
                 Text(
-                    text = "Список точек",
+                    text = stringResource(R.string.poi_list_title),
                     fontFamily = FontFamily(Font(R.font.manropebold)),
                     fontSize = 18.sp,
                     modifier = Modifier.padding(bottom = 8.dp)
@@ -178,8 +181,8 @@ fun PoiListDialog(
                     items(pois, key = { it.id }) { poi ->
                         Surface(
                             shape = RoundedCornerShape(10.dp),
-                            border = BorderStroke(1.dp, Color(0xFF0072BC)),
-                            color = Color.White
+                            border = BorderStroke(1.dp, colorScheme.outline),
+                            color = colorScheme.surfaceVariant
                         ) {
                             Row(
                                 modifier = Modifier
@@ -193,7 +196,7 @@ fun PoiListDialog(
                                     Text(text = "${poi.typeId} (${poi.row}, ${poi.col})", fontSize = 12.sp, color = Color.Gray)
                                 }
                                 TextButton(onClick = { onDelete(poi) }) {
-                                    Text("Удалить", color = Color(0xFFC62828))
+                                    Text(stringResource(R.string.common_delete), color = Color(0xFFC62828))
                                 }
                             }
                         }
@@ -205,7 +208,7 @@ fun PoiListDialog(
                     horizontalArrangement = Arrangement.End
                 ) {
                     TextButton(onClick = onDismiss) {
-                        Text("Закрыть")
+                        Text(stringResource(R.string.common_close))
                     }
                 }
             }

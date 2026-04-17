@@ -1,3 +1,182 @@
 <resources>
     <string name="app_name">mobile-module</string>
+
+    <string name="common_back">Назад</string>
+    <string name="common_cancel">Отмена</string>
+    <string name="common_close">Закрыть</string>
+    <string name="common_clear">Очистить</string>
+    <string name="common_buy">Купить</string>
+    <string name="common_delete">Удалить</string>
+    <string name="common_all">Все</string>
+    <string name="common_unknown_value">?</string>
+    <string name="common_none">нет</string>
+    <string name="common_enabled">вкл</string>
+    <string name="common_disabled">выкл</string>
+    <string name="common_dash">-</string>
+
+    <string name="welcome_title">Добро пожаловать в HITsGis</string>
+    <string name="welcome_open_map">Открыть карту</string>
+    <string name="welcome_change_language">Язык: %1$s</string>
+    <string name="language_russian">Русский</string>
+    <string name="language_english">English</string>
+    <string name="welcome_switch_to_dark_theme">Темная тема</string>
+    <string name="welcome_switch_to_light_theme">Светлая тема</string>
+
+    <string name="drawing_clear">Очистить</string>
+    <string name="drawing_recognize">Распознать</string>
+
+    <string name="result_recognition_error_default">Не удалось распознать цифру</string>
+    <string name="result_error_prefix">Ошибка: %1$s</string>
+    <string name="result_recognized_digit">Распознанная цифра: %1$d</string>
+    <string name="result_apply_rating">Применить оценку</string>
+    <string name="result_draw_another">Нарисовать другую</string>
+
+    <string name="decision_title">Где пообедать?</string>
+    <string name="decision_show_tree">Показать дерево</string>
+    <string name="decision_hide_tree">Скрыть дерево</string>
+    <string name="decision_tree_structure">Структура дерева решений:</string>
+    <string name="decision_choose_conditions">Выберите условия:</string>
+    <string name="decision_label_location">Местоположение</string>
+    <string name="decision_label_budget">Бюджет</string>
+    <string name="decision_label_time_available">Доступное время</string>
+    <string name="decision_label_food_type">Тип еды</string>
+    <string name="decision_label_queue_tolerance">Очередь</string>
+    <string name="decision_label_weather">Погода</string>
+    <string name="decision_find_lunch_place">Найти место для обеда</string>
+    <string name="decision_recommendation">Рекомендация:</string>
+    <string name="decision_logic_path">Логика выбора (путь в дереве):</string>
+    <string name="decision_path_item">• %1$s</string>
+    <string name="decision_csv_training_title">Обучение на CSV:</string>
+    <string name="decision_csv_training_hint">Загрузите свои данные в формате: location,budget,time_available,food_type,queue_tolerance,weather,recommended_place</string>
+    <string name="decision_csv_placeholder">Вставьте данные...</string>
+    <string name="decision_train">Обучить</string>
+    <string name="decision_reset">Сбросить</string>
+    <string name="decision_tree_leaf">↳ Решение: %1$s</string>
+    <string name="decision_tree_if_feature">? Если %1$s:</string>
+    <string name="decision_tree_value_item">  - %1$s:</string>
+    <string name="decision_feature_location">Местоположение</string>
+    <string name="decision_feature_budget">Бюджет</string>
+    <string name="decision_feature_time_available">Доступное время</string>
+    <string name="decision_feature_food_type">Тип еды</string>
+    <string name="decision_feature_queue_tolerance">Очередь</string>
+    <string name="decision_feature_weather">Погода</string>
+    <string name="decision_option_main_building">Главный корпус</string>
+    <string name="decision_option_second_building">Второй корпус</string>
+    <string name="decision_option_bus_stop">Остановка</string>
+    <string name="decision_option_campus_center">Центр кампуса</string>
+    <string name="decision_option_low">Низкий</string>
+    <string name="decision_option_medium">Средний</string>
+    <string name="decision_option_high">Высокий</string>
+    <string name="decision_option_very_short">Очень мало</string>
+    <string name="decision_option_short">Мало</string>
+    <string name="decision_option_coffee">Кофе</string>
+    <string name="decision_option_pancakes">Блины</string>
+    <string name="decision_option_full_meal">Полный обед</string>
+    <string name="decision_option_snack">Перекус</string>
+    <string name="decision_option_good_weather">Хорошая</string>
+    <string name="decision_option_bad_weather">Плохая</string>
+
+    <string name="tools_title">Инструменты</string>
+    <string name="tools_show_walkable_cells">Показывать проходимые клетки</string>
+    <string name="tools_show_poi">Показывать точки POI</string>
+    <string name="tools_show_tap_coordinates">Показывать координаты нажатия</string>
+    <string name="tools_ribbon_mode_astar">Режим лент для A*</string>
+    <string name="tools_clear_ribbons">Очистить ленты</string>
+    <string name="tools_open_editor">Открыть редактор</string>
+    <string name="tools_close_editor">Закрыть редактор</string>
+
+    <string name="editor_button_poi">POI</string>
+    <string name="editor_button_save">SAVE</string>
+
+    <string name="map_choose_action">Выберите действие</string>
+    <string name="map_action_build_route">Построить маршрут (A*)</string>
+    <string name="map_action_food_clusters">Кластеры еды</string>
+    <string name="map_action_genetic_food_route">Генетический маршрут еды</string>
+    <string name="map_action_ant_landmarks">Муравьиный тур по достопримечательностям</string>
+    <string name="map_action_ant_cowork">Подбор коворкинга (муравьиный)</string>
+    <string name="map_action_decision_tree_lunch">Дерево решений: обед</string>
+    <string name="tap_coordinates_badge">row=%1$d col=%2$d value=%3$s</string>
+
+    <string name="poi_rating_label">Оценка</string>
+    <string name="poi_not_rated">Не оценено</string>
+    <string name="poi_rate_button">Поставить оценку</string>
+    <string name="poi_working_hours">Время работы</string>
+    <string name="poi_menu_title">Меню</string>
+    <string name="poi_capacity_info">Вместимость</string>
+    <string name="poi_comfort_info">Комфорт</string>
+    <string name="poi_extra_data_missing">Дополнительные данные отсутствуют.</string>
+    <string name="poi_new_point_title">Новая точка (%1$d, %2$d)</string>
+    <string name="poi_name_label">Название</string>
+    <string name="poi_type_landmark_short">Дост.</string>
+    <string name="poi_type_food_short">Еда</string>
+    <string name="poi_type_space_short">Коворк</string>
+    <string name="poi_menu_label">Меню (через запятую)</string>
+    <string name="poi_open_label">Открытие</string>
+    <string name="poi_close_label">Закрытие</string>
+    <string name="poi_capacity_label">Вместимость</string>
+    <string name="poi_comfort_label">Комфорт (0..1)</string>
+    <string name="poi_create_button">Создать</string>
+    <string name="poi_list_title">Список POI</string>
+
+    <string name="genetic_choose_dishes">Выберите блюда</string>
+    <string name="genetic_cart_button">Корзина (%1$d)</string>
+    <string name="genetic_cart_title">Корзина</string>
+    <string name="genetic_cart_empty">Корзина пуста</string>
+
+    <string name="clustering_title">Настройки кластеризации</string>
+    <string name="clustering_subtitle">Выберите одну или две метрики для сравнения.</string>
+    <string name="clustering_metric_euclidean">Евклидово расстояние</string>
+    <string name="clustering_metric_walkable">Пешеходное расстояние (A*)</string>
+    <string name="clustering_build_button">Построить</string>
+
+    <string name="ant_landmarks_title">Муравьиный тур по достопримечательностям</string>
+    <string name="ant_landmarks_selected_count">Выбрано точек: %1$d</string>
+    <string name="ant_landmarks_choose_start">Выбрать старт</string>
+    <string name="ant_cowork_title">Подбор коворкинга</string>
+    <string name="ant_cowork_subtitle">Укажите количество студентов для распределения.</string>
+    <string name="ant_cowork_students_label">Количество студентов</string>
+    <string name="ant_cowork_find_button">Найти коворкинг</string>
+
+    <string name="map_toast_rating_saved">Оценка сохранена: %1$d</string>
+    <string name="map_toast_start_must_be_walkable">Старт должен быть на проходимой клетке (значение 1).</string>
+    <string name="map_toast_select_at_least_one_landmark">Выберите хотя бы одну достопримечательность.</string>
+    <string name="map_toast_ant_tour_finished">Муравьиный тур завершен.</string>
+    <string name="map_toast_cowork_finished">Подбор коворкинга завершен.</string>
+    <string name="map_toast_genetic_finished_missing">Генетический расчет завершен. Не куплено: %1$d</string>
+    <string name="map_toast_route_not_found">Маршрут не существует</string>
+    <string name="map_toast_select_start_for_genetic">Выберите стартовую точку на карте для запуска генетики.</string>
+    <string name="map_toast_select_start_on_map">Выберите стартовую точку на карте.</string>
+    <string name="map_toast_invalid_students_count">Введите корректное число студентов.</string>
+    <string name="map_toast_no_classroom_seats">Нет мест в аудиториях.</string>
+    <string name="map_toast_no_student_spaces">Нет доступных студенческих пространств.</string>
+    <string name="map_toast_matrix_not_loaded">Матрица карты еще не загружена.</string>
+    <string name="map_toast_select_at_least_one_metric">Выберите хотя бы одну метрику.</string>
+    <string name="map_toast_no_food_pois">Не найдено точек заведений (food).</string>
+    <string name="map_toast_clusters_done_with_diff">Готово. Различающихся точек: %1$d</string>
+    <string name="map_toast_clusters_done">Готово. Кластеры построены.</string>
+
+    <string name="map_astar_status_select_start">A*: выберите стартовую точку</string>
+    <string name="map_astar_status_select_end">A*: выберите конечную точку</string>
+    <string name="map_astar_status_animating">A*: идет итерационная анимация</string>
+    <string name="map_astar_status_calculating">A*: расчет маршрута</string>
+    <string name="map_astar_status_built">A*: маршрут построен</string>
+    <string name="map_ribbons_status">Ленты: %1$d (режим лент: %2$s)</string>
+
+    <string name="map_genetic_status_select_start">Генетический маршрут: выберите стартовую точку на дорожке</string>
+    <string name="map_genetic_status_iteration">Генетический маршрут: итерация %1$d/%2$d</string>
+    <string name="map_genetic_status_best_score">Лучший score: %1$s | Не куплено: %2$d</string>
+
+    <string name="map_ant_status_select_start">Муравьиный алгоритм: выберите стартовую точку на дорожке</string>
+    <string name="map_ant_status_iteration">Муравьиный алгоритм: итерация %1$d/%2$d</string>
+    <string name="map_ant_status_best_score">Лучший score: %1$s | %2$s</string>
+    <string name="map_ant_status_tour_points">Точек в туре: %1$d</string>
+    <string name="map_ant_status_best_route_points">Точек в лучшем маршруте: %1$d</string>
+    <string name="map_ant_status_students_in_task">Студентов в задаче: %1$d</string>
+    <string name="map_ant_status_primary_cowork">Основной коворк: %1$s | Распределено: %2$d</string>
+
+    <string name="map_cluster_metric_euclidean">Евклидово</string>
+    <string name="map_cluster_metric_walkable">Пешеходное (A*)</string>
+    <string name="map_cluster_metric_walkable_short">Пешеходное(A*)</string>
+    <string name="map_cluster_status">Кластеры: метрика %1$s, k=%2$s</string>
+    <string name="map_cluster_diff_points">Точек с разными кластерами между метриками: %1$d</string>
 </resources>

@@ -14,8 +14,10 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import module.mobile.app.R
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -139,7 +141,7 @@ fun DrawingScreen(
             modifier = Modifier.padding(16.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Button(onClick = { clear() }) { Text("Очистить") }
+            Button(onClick = { clear() }) { Text(stringResource(R.string.drawing_clear)) }
             Button(onClick = {
                 val flat = FloatArray(gridSize * gridSize) { idx ->
                     val row = idx / gridSize
@@ -147,8 +149,8 @@ fun DrawingScreen(
                     if (pixels[row][col]) 1f else 0f
                 }
                 onResult(flat)
-            }) { Text("Распознать") }
-            Button(onClick = onBack) { Text("Назад") }
+            }) { Text(stringResource(R.string.drawing_recognize)) }
+            Button(onClick = onBack) { Text(stringResource(R.string.common_back)) }
         }
     }
 }
