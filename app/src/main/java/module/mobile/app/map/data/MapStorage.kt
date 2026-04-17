@@ -97,6 +97,12 @@ fun loadPois(context: Context, matrixRows: Int, matrixCols: Int): Pair<Int, List
                 null
             }
 
+            val rating = if (obj.has("rating") && !obj.isNull("rating")) {
+                obj.optInt("rating", -1).takeIf { it in 0..9 }
+            } else {
+                null
+            }
+
             result.add(
                 PoiItem(
                     id = obj.optString("id", "poi_${i + 1}"),
@@ -105,7 +111,8 @@ fun loadPois(context: Context, matrixRows: Int, matrixCols: Int): Pair<Int, List
                     row = row,
                     col = col,
                     foodBonus = foodBonus,
-                    spaceBonus = spaceBonus
+                    spaceBonus = spaceBonus,
+                    rating = rating
                 )
             )
         }
@@ -147,6 +154,12 @@ private fun buildPoiJson(schemaVersion: Int, pois: List<PoiItem>): JSONObject {
         obj.put("name", poi.name)
         obj.put("typeId", poi.typeId)
         obj.put("anchor", JSONObject().put("row", poi.row).put("col", poi.col))
+
+        if (poi.rating != null) {
+            obj.put("rating", poi.rating.coerceIn(0, 9))
+        } else {
+            obj.put("rating", JSONObject.NULL)
+        }
 
         if (poi.typeId == "food") {
             val food = poi.foodBonus ?: FoodBonus(emptyList(), "09:00", "18:00")
@@ -191,5 +204,3 @@ fun nextPoiId(existing: List<PoiItem>, typeId: String): String {
         .maxOrNull() ?: 0
     return prefix + (max + 1).toString().padStart(3, '0')
 }
-
-

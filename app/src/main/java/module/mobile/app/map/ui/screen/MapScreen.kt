@@ -34,7 +34,6 @@ import module.mobile.app.algorithms.ClusterMetric
 import module.mobile.app.algorithms.ClusteringAlgorithm
 import module.mobile.app.algorithms.GeneticFoodRequest
 import module.mobile.app.algorithms.GeneticFoodRouteAlgorithm
-import module.mobile.app.algorithms.astar
 import module.mobile.app.algorithms.astarWithTrace
 import module.mobile.app.map.data.loadMatrix
 import module.mobile.app.map.data.loadPois
@@ -67,7 +66,10 @@ import module.mobile.app.map.ui.components.ToolsMenuCard
 @Composable
 fun MapScreen(
     goToBackMain: () -> Unit,
-    onOpenDecisionTree: () -> Unit
+    onOpenDecisionTree: () -> Unit,
+    onStartRatingDraw: (String) -> Unit,
+    pendingRatingUpdate: Pair<String, Int>?,
+    onConsumeRatingUpdate: () -> Unit
 ) {
     val imgWidthPx = 4820f
     val imgHeightPx = 2961f
@@ -202,6 +204,27 @@ fun MapScreen(
                 gridVersion++
             }
         }
+    }
+
+    LaunchedEffect(pendingRatingUpdate, poiItems) {
+        val update = pendingRatingUpdate ?: return@LaunchedEffect
+        if (poiItems.none { it.id == update.first }) return@LaunchedEffect
+
+        val (poiId, rating) = update
+        val normalized = rating.coerceIn(0, 9)
+        val updated = poiItems.map { item ->
+            if (item.id == poiId) item.copy(rating = normalized) else item
+        }
+
+        poiItems = updated
+        selectedPoi = updated.firstOrNull { it.id == selectedPoi?.id }
+
+        withContext(Dispatchers.IO) {
+            savePois(context, schemaVersion, updated)
+        }
+
+        Toast.makeText(context, "Оценка сохранена: $normalized", Toast.LENGTH_SHORT).show()
+        onConsumeRatingUpdate()
     }
 
     val mapEditMode = (editorVisible && editorMode != EditorMode.None) || ribbonModeEnabled
@@ -861,6 +884,9 @@ fun MapScreen(
             selectedPoi?.let { poi ->
                 PoiContextCard(
                     poi = poi,
+                    onStartRatingDraw = {
+                        onStartRatingDraw(poi.id)
+                    },
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .zIndex(2f)

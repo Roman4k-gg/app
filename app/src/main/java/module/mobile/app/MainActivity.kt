@@ -43,6 +43,8 @@ class MainActivity : ComponentActivity() {
 fun AppNavigation() {
     val navController = rememberNavController()
     var drawingResult by remember { mutableStateOf<FloatArray?>(null) }
+    var ratingPoiId by remember { mutableStateOf<String?>(null) }
+    var pendingRatingUpdate by remember { mutableStateOf<Pair<String, Int>?>(null) }
 
     NavHost(
         navController = navController,
@@ -50,15 +52,20 @@ fun AppNavigation() {
     ) {
         composable("welcome") {
             WelcomeScreen(
-                onMapClick = { navController.navigate("map") },
-                onDrawClick = { navController.navigate("draw") }
+                onMapClick = { navController.navigate("map") }
             )
         }
 
         composable("map") {
             MapScreen(
                 goToBackMain = { navController.popBackStack() },
-                onOpenDecisionTree = { navController.navigate("lunch") }
+                onOpenDecisionTree = { navController.navigate("lunch") },
+                onStartRatingDraw = { poiId ->
+                    ratingPoiId = poiId
+                    navController.navigate("draw")
+                },
+                pendingRatingUpdate = pendingRatingUpdate,
+                onConsumeRatingUpdate = { pendingRatingUpdate = null }
             )
         }
 
@@ -75,7 +82,15 @@ fun AppNavigation() {
         composable("result") {
             ResultScreen(
                 imagePixels = drawingResult ?: FloatArray(2500) { 0f },
-                onBackToDraw = { navController.popBackStack() }
+                onBackToDraw = { navController.popBackStack() },
+                onApplyDigit = { digit ->
+                    ratingPoiId?.let { poiId ->
+                        pendingRatingUpdate = poiId to digit.coerceIn(0, 9)
+                    }
+                    ratingPoiId = null
+                    drawingResult = null
+                    navController.popBackStack("map", false)
+                }
             )
         }
 
@@ -86,7 +101,7 @@ fun AppNavigation() {
 }
 
 @Composable
-fun WelcomeScreen(onMapClick: () -> Unit, onDrawClick: () -> Unit) {
+fun WelcomeScreen(onMapClick: () -> Unit) {
     Box(modifier = Modifier.fillMaxSize()) {
         Image(
             painter = painterResource(R.drawable.logo_hits),
@@ -135,27 +150,6 @@ fun WelcomeScreen(onMapClick: () -> Unit, onDrawClick: () -> Unit) {
             ) {
                 Text(
                     text = "Открыть карту",
-                    fontSize = 18.sp,
-                    fontFamily = FontFamily(Font(R.font.manropebold))
-                )
-            }
-
-            Button(
-                onClick = onDrawClick,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = androidx.compose.ui.graphics.Color(0xFFF1F9FF),
-                    contentColor = androidx.compose.ui.graphics.Color.Black
-                ),
-                shape = RoundedCornerShape(10.dp),
-                border = androidx.compose.foundation.BorderStroke(2.dp, androidx.compose.ui.graphics.Color(0xFF0072BC)),
-                elevation = ButtonDefaults.buttonElevation(defaultElevation = 6.dp),
-                modifier = Modifier
-                    .padding(horizontal = 40.dp, vertical = 8.dp)
-                    .fillMaxWidth(0.6f)
-                    .height(56.dp)
-            ) {
-                Text(
-                    text = "Распознать цифру",
                     fontSize = 18.sp,
                     fontFamily = FontFamily(Font(R.font.manropebold))
                 )

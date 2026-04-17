@@ -14,7 +14,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun ResultScreen(
     imagePixels: FloatArray,
-    onBackToDraw: () -> Unit
+    onBackToDraw: () -> Unit,
+    onApplyDigit: (Int) -> Unit
 ) {
     val context = LocalContext.current
     val recognizer = remember { DigitRecognizer(context) }
@@ -51,14 +52,20 @@ fun ResultScreen(
                 }
             }
             result != null -> {
+                val digit = result ?: 0
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        text = "Распознанная цифра: $result",
+                        text = "Распознанная цифра: $digit",
                         fontSize = 32.sp
                     )
                     Spacer(modifier = Modifier.height(24.dp))
-                    Button(onClick = onBackToDraw) {
-                        Text("Нарисовать другую")
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Button(onClick = { onApplyDigit(digit) }) {
+                            Text("Применить оценку")
+                        }
+                        OutlinedButton(onClick = onBackToDraw) {
+                            Text("Нарисовать другую")
+                        }
                     }
                 }
             }

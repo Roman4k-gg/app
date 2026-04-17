@@ -30,7 +30,6 @@ data class PoiItem(
     val row: Int,
     val col: Int,
     val foodBonus: FoodBonus? = null,
-    val spaceBonus: StudentSpaceBonus? = null
+    val spaceBonus: StudentSpaceBonus? = null,
+    val rating: Int? = null
 )
-
-

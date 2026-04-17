@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
@@ -32,6 +34,7 @@ import module.mobile.app.map.model.PoiItem
 @Composable
 fun PoiContextCard(
     poi: PoiItem,
+    onStartRatingDraw: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val scrollState = rememberScrollState()
@@ -82,6 +85,21 @@ fun PoiContextCard(
                     .padding(horizontal = 14.dp, vertical = 10.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
+                InfoRow(
+                    label = "Оценка",
+                    value = poi.rating?.toString() ?: "Не оценено"
+                )
+                Button(
+                    onClick = onStartRatingDraw,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF5398F9),
+                        contentColor = Color.White
+                    ),
+                    shape = RoundedCornerShape(10.dp)
+                ) {
+                    Text(text = "Поставить оценку")
+                }
+
                 poi.foodBonus?.let { food ->
                     InfoRow(label = "Время работы", value = "${food.open} - ${food.close}")
                     if (food.menu.isNotEmpty()) {
@@ -129,4 +147,3 @@ private fun InfoRow(label: String, value: String) {
         color = Color.Black
     )
 }
-
