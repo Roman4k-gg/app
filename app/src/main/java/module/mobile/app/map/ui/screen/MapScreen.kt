@@ -65,7 +65,10 @@ import module.mobile.app.map.ui.components.TapCoordinatesBadge
 import module.mobile.app.map.ui.components.ToolsMenuCard
 
 @Composable
-fun MapScreen(goToBackMain: () -> Unit) {
+fun MapScreen(
+    goToBackMain: () -> Unit,
+    onOpenDecisionTree: () -> Unit
+) {
     val imgWidthPx = 4820f
     val imgHeightPx = 2961f
     val matrixRows = 200
@@ -958,6 +961,10 @@ fun MapScreen(goToBackMain: () -> Unit) {
                         isGeneticMenuVisible = false
                         showGeneticCartDialog = false
                         showAntCoworkDialog = true
+                    },
+                    onOpenDecisionTree = {
+                        isBottomSheetVisible = false
+                        onOpenDecisionTree()
                     },
                     modifier = Modifier.align(Alignment.BottomStart)
                 )

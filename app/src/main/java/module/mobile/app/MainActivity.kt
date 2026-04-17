@@ -51,13 +51,15 @@ fun AppNavigation() {
         composable("welcome") {
             WelcomeScreen(
                 onMapClick = { navController.navigate("map") },
-                onDrawClick = { navController.navigate("draw") },
-                onLunchClick = { navController.navigate("lunch") }
+                onDrawClick = { navController.navigate("draw") }
             )
         }
 
         composable("map") {
-            MapScreen(goToBackMain = { navController.popBackStack() })
+            MapScreen(
+                goToBackMain = { navController.popBackStack() },
+                onOpenDecisionTree = { navController.navigate("lunch") }
+            )
         }
 
         composable("draw") {
@@ -84,7 +86,7 @@ fun AppNavigation() {
 }
 
 @Composable
-fun WelcomeScreen(onMapClick: () -> Unit, onDrawClick: () -> Unit, onLunchClick: () -> Unit) {
+fun WelcomeScreen(onMapClick: () -> Unit, onDrawClick: () -> Unit) {
     Box(modifier = Modifier.fillMaxSize()) {
         Image(
             painter = painterResource(R.drawable.logo_hits),
@@ -154,27 +156,6 @@ fun WelcomeScreen(onMapClick: () -> Unit, onDrawClick: () -> Unit, onLunchClick:
             ) {
                 Text(
                     text = "Распознать цифру",
-                    fontSize = 18.sp,
-                    fontFamily = FontFamily(Font(R.font.manropebold))
-                )
-            }
-
-            Button(
-                onClick = onLunchClick,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = androidx.compose.ui.graphics.Color(0xFFF1F9FF),
-                    contentColor = androidx.compose.ui.graphics.Color.Black
-                ),
-                shape = RoundedCornerShape(10.dp),
-                border = androidx.compose.foundation.BorderStroke(2.dp, androidx.compose.ui.graphics.Color(0xFF0072BC)),
-                elevation = ButtonDefaults.buttonElevation(defaultElevation = 6.dp),
-                modifier = Modifier
-                    .padding(horizontal = 40.dp, vertical = 8.dp)
-                    .fillMaxWidth(0.6f)
-                    .height(56.dp)
-            ) {
-                Text(
-                    text = "Где пообедать?",
                     fontSize = 18.sp,
                     fontFamily = FontFamily(Font(R.font.manropebold))
                 )

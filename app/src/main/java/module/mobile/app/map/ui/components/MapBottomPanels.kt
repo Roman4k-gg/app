@@ -104,10 +104,11 @@ fun MapBottomActionSheet(
     scrollState: ScrollState,
     isRouteMode: Boolean,
     onToggleRouteMode: () -> Unit,
-    onOpenClusteringMenu: () -> Unit,
-    onOpenGeneticMenu: () -> Unit,
-    onOpenAntLandmarks: () -> Unit,
-    onOpenAntCowork: () -> Unit,
+    onOpenClusteringMenu: () -> Unit = {},
+    onOpenGeneticMenu: () -> Unit = {},
+    onOpenAntLandmarks: () -> Unit = {},
+    onOpenAntCowork: () -> Unit = {},
+    onOpenDecisionTree: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -142,7 +143,7 @@ fun MapBottomActionSheet(
             ActionButton(text = "Генетический маршрут еды", onClick = onOpenGeneticMenu)
             ActionButton(text = "Муравьиный тур по роще", onClick = onOpenAntLandmarks)
             ActionButton(text = "Муравьиный подбор коворкинга", onClick = onOpenAntCowork)
-            ActionButton(text = "Дерево решений", onClick = {})
+            ActionButton(text = "Дерево решений (Обед)", onClick = onOpenDecisionTree)
             Spacer(modifier = Modifier.height(10.dp))
         }
     }
